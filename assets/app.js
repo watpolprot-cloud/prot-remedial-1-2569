@@ -249,7 +249,7 @@
     var h = '<div class="card"><div class="card-body"><div style="display:flex; gap:18px; flex-wrap:wrap">' +
       avatar(stuPhoto(s), s.name, 'lg') +
       '<div style="flex:1 1 320px; min-width:260px">' +
-      '<div class="small muted">' + esc(s.level) + ' · คณะสี ' + esc(s.color || '-') + '</div>' +
+      '<div class="small muted">' + esc(s.level) + '</div>' +
       '<h1 class="page-title" style="margin:2px 0">' + esc(s.name) + '</h1>' +
       '<div class="muted">รหัสประจำตัว ' + esc(s.code) + ' · ห้อง ' + esc(s.room) + ' เลขที่ ' + esc(s.no) +
       (room.homeroom ? ' · ห้องประจำ ' + esc(room.homeroom) : '') + '</div>' +
@@ -463,7 +463,7 @@
     var list = D.students.filter(function (s) { return s.room === key; })
       .sort(function (a, b) { return (+a.no) - (+b.no); });
     var h = '<div class="card"><div class="card-body"><div style="display:flex; gap:18px; flex-wrap:wrap; justify-content:space-between">' +
-      '<div><div class="small muted">' + esc(r.level) + (r.homeroom ? ' · ห้องประจำ ' + esc(r.homeroom) : '') + (r.color ? ' · คณะสี ' + esc(r.color) : '') + '</div>' +
+      '<div><div class="small muted">' + esc(r.level) + (r.homeroom ? ' · ห้องประจำ ' + esc(r.homeroom) : '') + '</div>' +
       '<h1 class="page-title" style="margin:2px 0">ห้อง ' + esc(r.key) + '</h1>' +
       '<div class="muted">ครูที่ปรึกษา</div><div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:6px">' +
       r.adv.map(function (id) { return personT(T[id]); }).join('') + '</div></div>' +
