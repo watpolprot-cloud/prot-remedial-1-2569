@@ -292,41 +292,59 @@
 
   /* ================= TEACHERS ================= */
   /* เลือกชื่อของตนเองเพื่อเปิดข้อมูลเฉพาะของท่าน ไม่มีตารางเปรียบเทียบจำนวนระหว่างครู */
-  function teacherOptions() {
+  function viewTeachers() {
     var groups = {}, other = [];
     D.teachers.forEach(function (t) {
       if (t.groups.length) t.groups.forEach(function (k) { (groups[k] = groups[k] || []).push(t); });
       else other.push(t);
     });
-    var html = '<option value="">— เลือกชื่อของท่าน —</option>';
-    GKEYS.forEach(function (k) {
-      if (!groups[k]) return;
-      html += '<optgroup label="' + esc(D.groups[k].full || D.groups[k].name) + '">' +
-        groups[k].sort(byName).map(function (t) { return '<option value="' + t.id + '">' + esc(t.name) + '</option>'; }).join('') +
-        '</optgroup>';
-    });
-    if (other.length) html += '<optgroup label="ครูผู้สอนอื่น ๆ">' +
-      other.sort(byName).map(function (t) { return '<option value="' + t.id + '">' + esc(t.name) + '</option>'; }).join('') + '</optgroup>';
-    return html;
-  }
-  function viewTeachers() {
+    var sections = GKEYS.filter(function (k) { return groups[k]; })
+      .map(function (k) { return { key: k, title: D.groups[k].full || D.groups[k].name, list: groups[k].sort(byName) }; });
+    if (other.length) sections.push({ key: 'OTHER', title: 'ครูผู้สอนอื่น ๆ', list: other.sort(byName) });
+
     var h = '<h1 class="page-title">ครูประจำวิชา</h1>' +
-      '<p class="page-lead">เลือกชื่อของท่าน เพื่อเปิดรายชื่อนักเรียนกลุ่มเป้าหมายในรายวิชาของท่าน พร้อมวัน เวลา และสถานที่ปฏิบัติหน้าที่</p>';
-    h += '<div class="card lookup"><div class="card-body">' +
-      '<form id="tForm" class="lookup-form" autocomplete="off">' +
-      '<label for="tSel" class="lookup-label">ชื่อครูผู้สอน (จัดกลุ่มตามกลุ่มสาระการเรียนรู้)</label>' +
-      '<div class="lookup-row">' +
-      '<select id="tSel" class="input lookup-input">' + teacherOptions() + '</select>' +
-      '<button type="submit" class="btn btn-primary lookup-btn">เปิดข้อมูลของท่าน</button>' +
-      '</div><div id="tMsg" class="lookup-msg"></div></form>' +
-      privacyNote('หน้านี้แสดงข้อมูลเฉพาะของครูท่านที่เลือกเท่านั้น ไม่มีการแสดงหรือเปรียบเทียบจำนวนนักเรียนระหว่างครูแต่ละท่าน') +
+      '<p class="page-lead">กดปุ่ม “ดูรายละเอียด” ที่ชื่อของท่าน เพื่อเปิดรายชื่อนักเรียนกลุ่มเป้าหมายในรายวิชาของท่าน พร้อมวัน เวลา และสถานที่ปฏิบัติหน้าที่</p>';
+    h += '<div class="card"><div class="card-body">' +
+      '<div class="toolbar"><div class="grow"><input id="tFind" class="input" type="search" placeholder="พิมพ์ชื่อของท่านเพื่อค้นหาได้เร็วขึ้น"></div></div>' +
+      '<div class="tjump">' + sections.map(function (sec) {
+        return '<a href="#" data-jump="tg-' + sec.key + '">' + esc(sec.key === 'OTHER' ? sec.title : D.groups[sec.key].name) + '</a>';
+      }).join('') + '</div>' +
+      privacyNote('หน้านี้แสดงเฉพาะรายชื่อครูตามกลุ่มสาระการเรียนรู้ ไม่แสดงจำนวนนักเรียนของครูแต่ละท่าน · ข้อมูลนักเรียนจะแสดงเมื่อกดเข้าไปที่ชื่อของท่านเท่านั้น') +
       '</div></div>';
+    sections.forEach(function (sec) {
+      h += '<div class="card tgroup" id="tg-' + sec.key + '"><div class="card-head"><h2>' + esc(sec.title) + '</h2></div>' +
+        '<div class="card-body"><div class="tgrid">';
+      sec.list.forEach(function (t) {
+        h += '<div class="tcard" data-name="' + esc(norm(t.name)) + '">' +
+          avatar(tPhoto(t), t.name, 'tph') +
+          '<div class="tc-name">' + (function (n) {
+            var i = n.indexOf(' ');
+            return i > 0 ? '<span>' + esc(n.slice(0, i)) + '</span><span>' + esc(n.slice(i + 1)) + '</span>' : '<span>' + esc(n) + '</span>';
+          })(String(t.name).replace(/\s+/g, ' ').trim()) + '</div>' +
+          '<a class="btn btn-sm btn-open tc-btn" href="#/teacher/' + t.id + '">ดูรายละเอียด</a>' +
+          '</div>';
+      });
+      h += '</div><div class="empty tnone" hidden>ไม่พบชื่อในกลุ่มนี้</div></div></div>';
+    });
     setTimeout(function () {
-      var f = document.getElementById('tForm'), sel = document.getElementById('tSel');
-      f.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (!sel.value) { document.getElementById('tMsg').innerHTML = '<span class="err">กรุณาเลือกชื่อของท่าน</span>'; return; }
-        location.hash = '#/teacher/' + sel.value;
+      var inp = document.getElementById('tFind');
+      inp.addEventListener('input', function () {
+        var q = norm(inp.value);
+        document.querySelectorAll('.tgroup').forEach(function (g) {
+          var shown = 0;
+          g.querySelectorAll('.tcard').forEach(function (c) {
+            var ok = !q || c.getAttribute('data-name').indexOf(q) >= 0;
+            c.hidden = !ok; if (ok) shown++;
+          });
+          g.hidden = q && !shown;
+        });
+      });
+      document.querySelectorAll('[data-jump]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          var el = document.getElementById(a.getAttribute('data-jump'));
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
       });
     }, 0);
     return h;
@@ -335,7 +353,8 @@
   function viewTeacher(id) {
     var t = T[id];
     if (!t) return '<div class="card"><div class="empty">ไม่พบข้อมูลครู<br><a href="#/teachers">กลับไปเลือกชื่อ</a></div></div>';
-    var h = '<div class="card"><div class="card-body"><div style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start">' +
+    var h = '<div class="no-print" style="margin-bottom:12px"><a class="btn btn-sm" href="#/teachers">กลับไปหน้ารายชื่อครู</a></div>' +
+      '<div class="card"><div class="card-body"><div style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start">' +
       avatar(tPhoto(t), t.name, 'lg') +
       '<div style="flex:1 1 320px">' +
       '<h1 class="page-title" style="margin:0">' + esc(t.name) + '</h1>' +
