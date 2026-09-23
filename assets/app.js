@@ -42,7 +42,7 @@
   function personT(t, link, sub) {
     if (!t) return '<span class="muted">—</span>';
     var nm = esc(t.name);
-    if (link !== false) nm = '<a href="#/teacher/' + t.id + '">' + nm + '</a>';
+    if (link === true) nm = '<a href="#/teacher/' + t.id + '">' + nm + '</a>';
     return '<div class="person">' + avatar(tPhoto(t), t.name, 'sm') +
       '<div><div class="nm">' + nm + '</div>' +
       (sub ? '<div class="meta">' + sub + '</div>' : '') + '</div></div>';
@@ -69,6 +69,12 @@
   }
   function norm(s) { return String(s || '').toLowerCase().replace(/\s+/g, ''); }
   function nf(n) { return Number(n).toLocaleString('th-TH'); }
+  /* ตัดคำนำหน้าชื่อเพื่อใช้เรียงตามตัวอักษร */
+  function bareName(n) { return String(n || '').replace(/^(ว่าที่\s*ร\.?\s*ต\.?\s*(หญิง)?\s*|นางสาว|นาง|นาย|Miss\s*|Mrs\.?\s*|Mr\.?\s*|Ms\.?\s*)/i, '').trim(); }
+  function byName(a, b) { return bareName(a.name).localeCompare(bareName(b.name), 'th'); }
+  function privacyNote(txt) {
+    return '<div class="notice info" style="margin-top:14px">' + txt + '</div>';
+  }
   /* ทำให้ทั้งแถวของตารางกดได้ เมื่อแถวนั้นมี data-href */
   function bindRows() {
     document.querySelectorAll('tr[data-href]').forEach(function (tr) {
@@ -113,9 +119,6 @@
         subj[it.code].n++;
       });
     });
-    var topSubj = Object.keys(subj).map(function (k) { return subj[k]; })
-      .sort(function (x, y) { return y.n - x.n; }).slice(0, 12);
-    var topRooms = D.rooms.slice().sort(function (x, y) { return y.n - x.n; }).slice(0, 12);
     var maxLoad = 0;
     GKEYS.forEach(function (k) { var l = D.stationLoad[k]; if (l && l.students > maxLoad) maxLoad = l.students; });
 
@@ -157,8 +160,8 @@
       });
     h += '</tbody></table></div></div>';
 
-    h += '<div class="grid g2" style="margin-top:18px">';
-    h += '<div class="card"><div class="card-head"><h2>แยกตามระดับชั้น</h2></div><div class="table-scroll"><table>' +
+    h += '<div class="card" style="margin-top:18px"><div class="card-head"><h2>แยกตามระดับชั้น</h2>' +
+      '<span class="small muted">ตัวเลขภาพรวมระดับชั้น ไม่แสดงรายห้อง รายวิชา หรือรายบุคคล</span></div><div class="table-scroll"><table>' +
       '<thead><tr><th>ระดับชั้น</th><th class="num">นักเรียนที่ต้องแก้</th><th class="num">ทั้งหมด</th><th class="num">0</th><th class="num">ร</th><th class="num">มส</th><th class="num">มผ</th></tr></thead><tbody>';
     ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'].forEach(function (L) {
       var v = lvl[L]; if (!v) return;
@@ -167,26 +170,11 @@
     });
     h += '</tbody></table></div></div>';
 
-    h += '<div class="card"><div class="card-head"><h2>ห้องที่มีนักเรียนต้องแก้มากที่สุด</h2>' +
-      '<a class="btn btn-sm btn-open" href="#/advisors">ดูทุกห้อง</a></div><div class="table-scroll"><table>' +
-      '<thead><tr><th>ห้อง</th><th class="num">ต้องแก้</th><th class="num">ทั้งห้อง</th><th class="num">รายการวิชา</th><th></th><th></th></tr></thead><tbody>';
-    topRooms.forEach(function (r) {
-      var ent = GR.reduce(function (a, g) { return a + r.counts[g]; }, 0);
-      var href = '#/advisor/' + encodeURIComponent(r.key);
-      h += '<tr data-href="' + href + '"><td><strong>' + esc(r.key) + '</strong></td>' +
-        '<td class="num"><strong>' + r.n + '</strong></td><td class="num muted">' + r.enrolled + '</td>' +
-        '<td class="num">' + ent + '</td><td style="width:120px"><span class="bar"><span style="width:' +
-        Math.round(r.n / r.enrolled * 100) + '%"></span></span></td>' +
-        '<td class="act"><a class="btn btn-sm btn-open" href="' + href + '">ดูรายชื่อ</a></td></tr>';
-    });
-    h += '</tbody></table></div></div></div>';
-
-    h += '<div class="card"><div class="card-head"><h2>รายวิชาที่มีนักเรียนไม่ผ่านมากที่สุด</h2></div><div class="table-scroll"><table>' +
-      '<thead><tr><th>รหัสวิชา</th><th>รายวิชา</th><th>กลุ่มสาระ</th><th class="num">จำนวนรายการ</th></tr></thead><tbody>';
-    topSubj.forEach(function (s) {
-      h += '<tr><td class="nowrap">' + esc(s.code) + '</td><td>' + esc(s.name) + '</td><td class="small muted">' + esc(gname(s.g)) + '</td><td class="num">' + s.n + '</td></tr>';
-    });
-    h += '</tbody></table></div></div>';
+    h += '<div class="grid g3" style="margin-top:18px">' +
+      '<a class="stat golink" href="#/students"><div class="k">สำหรับนักเรียน</div><div class="gl-t">ตรวจสอบรายบุคคล</div><div class="n">กรอกรหัสประจำตัว 5 หลัก</div></a>' +
+      '<a class="stat golink" href="#/teachers"><div class="k">สำหรับครูประจำวิชา</div><div class="gl-t">ดูรายชื่อในรายวิชาของท่าน</div><div class="n">เลือกชื่อของท่าน</div></a>' +
+      '<a class="stat golink" href="#/advisors"><div class="k">สำหรับครูที่ปรึกษา</div><div class="gl-t">กำกับติดตามห้องของท่าน</div><div class="n">เลือกห้องเรียน</div></a>' +
+      '</div>';
 
     h += '<div class="notice warn" style="margin-top:18px"><strong>ข้อควรทราบ</strong> ผลการเรียน “มส” ไม่อยู่ในขอบข่ายของกิจกรรมนี้ ' +
       'นักเรียนต้องเรียนซ้ำรายวิชาตามระเบียบการวัดและประเมินผลของโรงเรียน · ในหน้าเว็บนี้จึงแสดงรายการ มส ไว้เพื่อการกำกับติดตามของครูที่ปรึกษาเท่านั้น</div>';
@@ -198,51 +186,44 @@
   }
 
   /* ================= STUDENTS ================= */
-  function viewStudents(q) {
-    var h = '<h1 class="page-title">นักเรียน</h1>' +
-      '<p class="page-lead">ค้นหาด้วยรหัสประจำตัว ชื่อ หรือห้องเรียน เพื่อดูว่าต้องไปพบครูท่านใด วันใด เวลาใด และที่ไหน</p>';
-    h += '<div class="card"><div class="card-body"><div class="toolbar">' +
-      '<div class="grow"><input id="stuQ" class="input" type="search" placeholder="พิมพ์รหัสนักเรียน ชื่อ หรือห้อง เช่น 44731 · สมชาย · ม.5/4" value="' + esc(q || '') + '"></div>' +
-      '<select id="stuRoom" class="input" style="width:auto"><option value="">ทุกห้อง</option>' +
-      D.rooms.filter(function (r) { return r.n; }).map(function (r) { return '<option>' + r.key + '</option>'; }).join('') +
-      '</select>' +
-      '<select id="stuGrade" class="input" style="width:auto"><option value="">ทุกผลการเรียน</option>' +
-      GR.map(function (g) { return '<option>' + g + '</option>'; }).join('') + '</select>' +
-      '</div><div id="stuResult" style="margin-top:14px"></div></div></div>';
-    setTimeout(bindStudents, 0);
+  /* แสดงเฉพาะรายบุคคล: ต้องกรอกรหัสประจำตัวให้ตรงทั้ง 5 หลัก ไม่มีการแสดงรายชื่อรวม */
+  function viewStudents(q, miss) {
+    var h = '<h1 class="page-title">ตรวจสอบรายบุคคล สำหรับนักเรียน</h1>' +
+      '<p class="page-lead">กรอกรหัสประจำตัวนักเรียนของตนเอง เพื่อดูว่าต้องไปพบครูท่านใด วันใด เวลาใด และที่ไหน</p>';
+    h += '<div class="card lookup"><div class="card-body">' +
+      '<form id="stuForm" class="lookup-form" autocomplete="off">' +
+      '<label for="stuCode" class="lookup-label">รหัสประจำตัวนักเรียน</label>' +
+      '<div class="lookup-row">' +
+      '<input id="stuCode" class="input lookup-input" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="เช่น 44731" value="' + esc(q || '') + '">' +
+      '<button type="submit" class="btn btn-primary lookup-btn">ตรวจสอบ</button>' +
+      '</div>' +
+      '<div id="stuMsg" class="lookup-msg">' + (miss ? missMsg(miss) : '') + '</div>' +
+      '</form>' +
+      privacyNote('ระบบแสดงข้อมูลเป็นรายบุคคลเท่านั้น ไม่มีการแสดงรายชื่อนักเรียนรวม · หากตรวจสอบแล้วไม่พบรายการ แปลว่าไม่มีรายวิชาที่ต้องแก้ไขผลการเรียน ณ วันเวลาที่ดึงข้อมูล') +
+      '</div></div>';
+    setTimeout(function () {
+      var f = document.getElementById('stuForm'), inp = document.getElementById('stuCode');
+      if (!miss) inp.focus();
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var code = String(inp.value || '').replace(/\D/g, '');
+        var msg = document.getElementById('stuMsg');
+        if (code.length !== 5) { msg.innerHTML = '<span class="err">กรุณากรอกรหัสประจำตัวให้ครบ 5 หลัก</span>'; return; }
+        if (S[code]) { location.hash = '#/student/' + code; return; }
+        msg.innerHTML = missMsg(code);
+      });
+    }, 0);
     return h;
   }
-  function bindStudents() {
-    var qEl = document.getElementById('stuQ'), rEl = document.getElementById('stuRoom'), gEl = document.getElementById('stuGrade');
-    function run() {
-      var q = norm(qEl.value), room = rEl.value, grade = gEl.value;
-      var list = D.students.filter(function (s) {
-        if (room && s.room !== room) return false;
-        if (grade && !s.counts[grade]) return false;
-        if (!q) return true;
-        return norm(s.code).indexOf(q) >= 0 || norm(s.name).indexOf(q) >= 0 || norm(s.room).indexOf(q) >= 0;
-      });
-      var out = document.getElementById('stuResult');
-      if (!list.length) { out.innerHTML = '<div class="empty">ไม่พบนักเรียนตามเงื่อนไขที่ค้นหา</div>'; return; }
-      var html = '<div class="hint"><strong>วิธีใช้</strong> — กดที่การ์ดของนักเรียน เพื่อเปิดตารางว่าต้องไปพบครูท่านใด วันใด เวลาใด และที่ไหน</div>' +
-        '<div class="small muted" style="margin-bottom:8px">พบ ' + list.length + ' คน' + (list.length > 200 ? ' (แสดง 200 คนแรก)' : '') + '</div><div class="student-grid">';
-      list.slice(0, 200).forEach(function (s) {
-        html += '<a class="scard" href="#/student/' + s.code + '">' + avatar(stuPhoto(s), s.name) +
-          '<div style="min-width:0"><div class="nm">' + esc(s.name) + '</div>' +
-          '<div class="mt">' + esc(s.room) + ' เลขที่ ' + esc(s.no) + ' · ' + esc(s.code) + '</div>' +
-          '<div style="margin-top:4px">' + countChips(s.counts) + '</div>' +
-          '<div class="go">ดูรายละเอียด</div></div></a>';
-      });
-      html += '</div>';
-      out.innerHTML = html;
-    }
-    qEl.addEventListener('input', run); rEl.addEventListener('change', run); gEl.addEventListener('change', run);
-    run();
+  function missMsg(code) {
+    return '<div class="ok-box"><strong>ไม่พบรายวิชาที่ต้องแก้ไขผลการเรียนของรหัส ' + esc(code) + '</strong><br>' +
+      'แปลว่ารหัสนี้ไม่มีผลการเรียน 0 / ร / มส / มผ ณ วันเวลาที่ดึงข้อมูล · หากนักเรียนมั่นใจว่ายังมีรายวิชาที่ไม่ผ่าน ' +
+      'โปรดตรวจสอบรหัสอีกครั้ง หรือสอบถามครูที่ปรึกษา</div>';
   }
 
   function viewStudent(code) {
     var s = S[code];
-    if (!s) return '<div class="card"><div class="empty">ไม่พบนักเรียนรหัส ' + esc(code) + ' ในรายชื่อผู้ที่ต้องแก้ผลการเรียน<br><a href="#/students">กลับไปค้นหา</a></div></div>';
+    if (!s) return viewStudents(code, code);
     var room = R[s.room] || {};
     var inScope = s.items.filter(function (i) { return i.grade !== 'มส'; });
     var msItems = s.items.filter(function (i) { return i.grade === 'มส'; });
@@ -257,7 +238,7 @@
       '<div class="small muted" style="margin-top:6px">รวม ' + s.items.length + ' รายวิชา · ' + s.credits + ' หน่วยกิต</div>' +
       '</div>' +
       '<div style="flex:0 1 300px"><div class="small muted" style="margin-bottom:6px">ครูที่ปรึกษา</div>' +
-      (s.adv.length ? s.adv.map(function (id) { return personT(T[id], true, '<a href="#/advisor/' + encodeURIComponent(s.room) + '">ดูห้อง ' + esc(s.room) + '</a>'); }).join('<div style="height:8px"></div>') : '<span class="muted">—</span>') +
+      (s.adv.length ? s.adv.map(function (id) { return personT(T[id], false); }).join('<div style="height:8px"></div>') : '<span class="muted">—</span>') +
       '</div></div></div></div>';
 
     h += '<div class="card"><div class="card-head"><h2>สิ่งที่นักเรียนต้องทำ</h2></div><div class="card-body">' +
@@ -310,48 +291,50 @@
   }
 
   /* ================= TEACHERS ================= */
+  /* เลือกชื่อของตนเองเพื่อเปิดข้อมูลเฉพาะของท่าน ไม่มีตารางเปรียบเทียบจำนวนระหว่างครู */
+  function teacherOptions() {
+    var groups = {}, other = [];
+    D.teachers.forEach(function (t) {
+      if (t.groups.length) t.groups.forEach(function (k) { (groups[k] = groups[k] || []).push(t); });
+      else other.push(t);
+    });
+    var html = '<option value="">— เลือกชื่อของท่าน —</option>';
+    GKEYS.forEach(function (k) {
+      if (!groups[k]) return;
+      html += '<optgroup label="' + esc(D.groups[k].full || D.groups[k].name) + '">' +
+        groups[k].sort(byName).map(function (t) { return '<option value="' + t.id + '">' + esc(t.name) + '</option>'; }).join('') +
+        '</optgroup>';
+    });
+    if (other.length) html += '<optgroup label="ครูผู้สอนอื่น ๆ">' +
+      other.sort(byName).map(function (t) { return '<option value="' + t.id + '">' + esc(t.name) + '</option>'; }).join('') + '</optgroup>';
+    return html;
+  }
   function viewTeachers() {
-    var list = D.teachers.filter(function (t) { return t.nEntries > 0; });
     var h = '<h1 class="page-title">ครูประจำวิชา</h1>' +
-      '<p class="page-lead">เลือกชื่อของท่านเพื่อดูรายชื่อนักเรียนกลุ่มเป้าหมายที่ต้องรับผิดชอบ ทั้งภาพรวมและรายคน พร้อมวัน เวลา และสถานที่ปฏิบัติหน้าที่</p>';
-    h += '<div class="card"><div class="card-body"><div class="toolbar">' +
-      '<div class="grow"><input id="tQ" class="input" type="search" placeholder="พิมพ์ชื่อครู"></div>' +
-      '<select id="tG" class="input" style="width:auto"><option value="">ทุกกลุ่มสาระ / กลุ่มงาน</option>' +
-      GKEYS.map(function (k) { return '<option value="' + k + '">' + esc(D.groups[k].name) + '</option>'; }).join('') +
-      '</select></div><div id="tResult" style="margin-top:14px"></div></div></div>';
+      '<p class="page-lead">เลือกชื่อของท่าน เพื่อเปิดรายชื่อนักเรียนกลุ่มเป้าหมายในรายวิชาของท่าน พร้อมวัน เวลา และสถานที่ปฏิบัติหน้าที่</p>';
+    h += '<div class="card lookup"><div class="card-body">' +
+      '<form id="tForm" class="lookup-form" autocomplete="off">' +
+      '<label for="tSel" class="lookup-label">ชื่อครูผู้สอน (จัดกลุ่มตามกลุ่มสาระการเรียนรู้)</label>' +
+      '<div class="lookup-row">' +
+      '<select id="tSel" class="input lookup-input">' + teacherOptions() + '</select>' +
+      '<button type="submit" class="btn btn-primary lookup-btn">เปิดข้อมูลของท่าน</button>' +
+      '</div><div id="tMsg" class="lookup-msg"></div></form>' +
+      privacyNote('หน้านี้แสดงข้อมูลเฉพาะของครูท่านที่เลือกเท่านั้น ไม่มีการแสดงหรือเปรียบเทียบจำนวนนักเรียนระหว่างครูแต่ละท่าน') +
+      '</div></div>';
     setTimeout(function () {
-      var q = document.getElementById('tQ'), g = document.getElementById('tG');
-      function run() {
-        var qq = norm(q.value), gg = g.value;
-        var l = list.filter(function (t) {
-          if (gg && t.groups.indexOf(gg) < 0) return false;
-          return !qq || norm(t.name).indexOf(qq) >= 0;
-        });
-        var out = document.getElementById('tResult');
-        if (!l.length) { out.innerHTML = '<div class="empty">ไม่พบครูตามเงื่อนไข</div>'; return; }
-        var html = '<div class="hint"><strong>วิธีใช้</strong> — กดปุ่ม “ดูรายชื่อนักเรียน” ท้ายแถวชื่อของท่าน (หรือคลิกที่แถวก็ได้) ' +
-          'เพื่อเปิดรายชื่อนักเรียนที่ต้องรับผิดชอบ แยกตามรายวิชา พร้อมวัน เวลา และสถานที่ปฏิบัติหน้าที่</div>' +
-          '<div class="small muted" style="margin-bottom:8px">พบ ' + l.length + ' คน · เรียงตามจำนวนรายการที่ต้องรับผิดชอบ</div><div class="table-scroll"><table>' +
-          '<thead><tr><th>ครูผู้สอน</th><th>กลุ่มสาระ / กลุ่มงาน</th><th class="num">นักเรียน</th><th class="num">รายการวิชา</th><th class="num">0</th><th class="num">ร</th><th class="num">มส</th><th class="num">มผ</th><th></th></tr></thead><tbody>';
-        l.forEach(function (t) {
-          var href = '#/teacher/' + t.id;
-          html += '<tr data-href="' + href + '"><td>' + personT(t, false) + '</td><td class="small">' + t.groups.map(function (k) { return esc(gname(k)); }).join(' · ') + '</td>' +
-            '<td class="num"><strong>' + t.nStudents + '</strong></td><td class="num">' + t.nEntries + '</td>' +
-            GR.map(function (gr) { return '<td class="num">' + (t.counts[gr] || '') + '</td>'; }).join('') +
-            '<td class="act"><a class="btn btn-sm btn-open" href="' + href + '">ดูรายชื่อนักเรียน</a></td></tr>';
-        });
-        html += '</tbody></table></div>';
-        out.innerHTML = html;
-        bindRows();
-      }
-      q.addEventListener('input', run); g.addEventListener('change', run); run();
+      var f = document.getElementById('tForm'), sel = document.getElementById('tSel');
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!sel.value) { document.getElementById('tMsg').innerHTML = '<span class="err">กรุณาเลือกชื่อของท่าน</span>'; return; }
+        location.hash = '#/teacher/' + sel.value;
+      });
     }, 0);
     return h;
   }
 
   function viewTeacher(id) {
     var t = T[id];
-    if (!t) return '<div class="card"><div class="empty">ไม่พบข้อมูลครู<br><a href="#/teachers">กลับไปค้นหา</a></div></div>';
+    if (!t) return '<div class="card"><div class="empty">ไม่พบข้อมูลครู<br><a href="#/teachers">กลับไปเลือกชื่อ</a></div></div>';
     var h = '<div class="card"><div class="card-body"><div style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start">' +
       avatar(tPhoto(t), t.name, 'lg') +
       '<div style="flex:1 1 320px">' +
@@ -386,6 +369,10 @@
       '<li>แก้ไขผลการเรียนในระบบ Prot Care ด้วยตนเอง (สถานะ “รออนุมัติ”) และส่งเอกสารให้กลุ่มงานวัดผลฯ ภายใน 16.00 น. ของวันส่งผล</li>' +
       '</ol></div></div>';
 
+    if (!t.subjects.length) {
+      h += '<div class="card"><div class="empty">ไม่มีนักเรียนที่ต้องแก้ไขผลการเรียนในรายวิชาของท่าน ณ วันเวลาที่ดึงข้อมูล</div></div>';
+      return h;
+    }
     h += '<div class="card"><div class="card-head"><h2>นักเรียนกลุ่มเป้าหมาย แยกตามรายวิชา</h2>' +
       '<div class="no-print"><button class="btn" onclick="window.print()">พิมพ์รายชื่อ</button></div></div><div class="card-body">';
     t.subjects.slice().sort(function (a, b) { return b.students.length - a.students.length; }).forEach(function (sub) {
@@ -419,40 +406,36 @@
   }
 
   /* ================= ADVISORS ================= */
+  /* เลือกห้องที่ท่านเป็นครูที่ปรึกษา ไม่มีตารางเปรียบเทียบจำนวนระหว่างห้อง */
   function viewAdvisors() {
+    var byLv = {};
+    D.rooms.slice().sort(function (a, b) { return roomSort(a.key, b.key); }).forEach(function (r) {
+      var L = r.key.split('/')[0]; (byLv[L] = byLv[L] || []).push(r);
+    });
+    var opts = '<option value="">— เลือกห้องเรียน —</option>' + Object.keys(byLv).map(function (L) {
+      return '<optgroup label="' + esc(byLv[L][0].level || L) + '">' + byLv[L].map(function (r) {
+        var names = r.adv.map(function (id) { return T[id] ? T[id].name : ''; }).filter(Boolean).join(', ');
+        return '<option value="' + esc(r.key) + '">' + esc(r.key) + (names ? ' · ' + esc(names) : '') + '</option>';
+      }).join('') + '</optgroup>';
+    }).join('');
     var h = '<h1 class="page-title">ครูที่ปรึกษา</h1>' +
-      '<p class="page-lead">เลือกห้องเรียนเพื่อกำกับติดตามนักเรียนในที่ปรึกษา ว่าใครต้องไปพบครูท่านใด รอบใด และยังเหลือรายวิชาใด</p>';
-    h += '<div class="card"><div class="card-body"><div class="toolbar">' +
-      '<div class="grow"><input id="aQ" class="input" type="search" placeholder="พิมพ์ห้อง เช่น ม.5/4 หรือชื่อครูที่ปรึกษา"></div></div>' +
-      '<div id="aResult" style="margin-top:14px"></div></div></div>';
+      '<p class="page-lead">เลือกห้องที่ท่านเป็นครูที่ปรึกษา เพื่อกำกับติดตามว่านักเรียนคนใดต้องไปพบครูท่านใด รอบใด</p>';
+    h += '<div class="card lookup"><div class="card-body">' +
+      '<form id="aForm" class="lookup-form" autocomplete="off">' +
+      '<label for="aSel" class="lookup-label">ห้องเรียน · ครูที่ปรึกษา</label>' +
+      '<div class="lookup-row">' +
+      '<select id="aSel" class="input lookup-input">' + opts + '</select>' +
+      '<button type="submit" class="btn btn-primary lookup-btn">เปิดข้อมูลห้อง</button>' +
+      '</div><div id="aMsg" class="lookup-msg"></div></form>' +
+      privacyNote('หน้านี้แสดงข้อมูลเฉพาะห้องที่ท่านเลือกเท่านั้น ไม่มีการแสดงหรือเปรียบเทียบจำนวนนักเรียนระหว่างห้อง') +
+      '</div></div>';
     setTimeout(function () {
-      var q = document.getElementById('aQ');
-      function run() {
-        var qq = norm(q.value);
-        var rows = D.rooms.filter(function (r) {
-          if (!qq) return true;
-          var names = r.adv.map(function (id) { return T[id] ? T[id].name : ''; }).join(' ');
-          return norm(r.key).indexOf(qq) >= 0 || norm(names).indexOf(qq) >= 0;
-        });
-        var html = '<div class="hint"><strong>วิธีใช้</strong> — กดปุ่ม “ดูรายชื่อนักเรียน” ท้ายแถวของห้องท่าน (หรือคลิกที่แถวก็ได้) ' +
-          'เพื่อเปิดรายชื่อนักเรียนรายคน พร้อมใบกำกับติดตามว่าต้องไปพบครูท่านใด รอบใด</div>' +
-          '<div class="table-scroll"><table><thead><tr><th>ห้อง</th><th>ครูที่ปรึกษา</th>' +
-          '<th class="num">นักเรียนทั้งห้อง</th><th class="num">ต้องแก้ผลการเรียน</th><th class="num">0</th><th class="num">ร</th><th class="num">มส</th><th class="num">มผ</th><th></th></tr></thead><tbody>';
-        rows.forEach(function (r) {
-          var href = '#/advisor/' + encodeURIComponent(r.key);
-          html += '<tr' + (r.n ? ' data-href="' + href + '"' : '') + '><td><strong>' + esc(r.key) + '</strong>' +
-            (r.homeroom ? '<div class="small muted">ห้องประจำ ' + esc(r.homeroom) + '</div>' : '') + '</td>' +
-            '<td>' + r.adv.map(function (id) { return T[id] ? '<a href="#/teacher/' + id + '">' + esc(T[id].name) + '</a>' : ''; }).join('<br>') + '</td>' +
-            '<td class="num muted">' + r.enrolled + '</td><td class="num"><strong>' + r.n + '</strong></td>' +
-            GR.map(function (g) { return '<td class="num">' + (r.counts[g] || '') + '</td>'; }).join('') +
-            '<td class="act">' + (r.n ? '<a class="btn btn-sm btn-open" href="' + href + '">ดูรายชื่อนักเรียน</a>'
-              : '<span class="small muted">ไม่มีนักเรียนต้องแก้</span>') + '</td></tr>';
-        });
-        html += '</tbody></table></div>';
-        document.getElementById('aResult').innerHTML = html;
-        bindRows();
-      }
-      q.addEventListener('input', run); run();
+      var f = document.getElementById('aForm'), sel = document.getElementById('aSel');
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!sel.value) { document.getElementById('aMsg').innerHTML = '<span class="err">กรุณาเลือกห้องเรียน</span>'; return; }
+        location.hash = '#/advisor/' + encodeURIComponent(sel.value);
+      });
     }, 0);
     return h;
   }
@@ -633,24 +616,30 @@
     var inp = document.getElementById('globalSearch'), pop = document.getElementById('globalResults');
     function close() { pop.hidden = true; pop.innerHTML = ''; }
     inp.addEventListener('input', function () {
-      var q = norm(inp.value);
+      var raw = String(inp.value || '').trim(), q = norm(raw);
       if (q.length < 2) return close();
       var out = [];
-      D.students.forEach(function (s) {
-        if (out.length > 40) return;
-        if (norm(s.code).indexOf(q) >= 0 || norm(s.name).indexOf(q) >= 0)
-          out.push({ href: '#/student/' + s.code, tag: 'นักเรียน', main: s.name, sub: s.room + ' เลขที่ ' + s.no + ' · ' + s.code });
-      });
-      D.teachers.forEach(function (t) {
-        if (out.length > 60) return;
-        if (norm(t.name).indexOf(q) >= 0)
-          out.push({ href: '#/teacher/' + t.id, tag: 'ครู', main: t.name, sub: t.groups.map(gname).join(' · ') + (t.nStudents ? ' · นักเรียน ' + t.nStudents + ' คน' : '') });
-      });
-      D.rooms.forEach(function (r) {
-        if (norm(r.key).indexOf(q) >= 0)
-          out.push({ href: '#/advisor/' + encodeURIComponent(r.key), tag: 'ห้อง', main: r.key, sub: 'ต้องแก้ผลการเรียน ' + r.n + ' คน' });
-      });
-      if (!out.length) { pop.innerHTML = '<div style="padding:12px" class="muted small">ไม่พบข้อมูล</div>'; pop.hidden = false; return; }
+      /* นักเรียน: ต้องพิมพ์รหัสประจำตัวครบ 5 หลักตรงกันเท่านั้น ไม่ค้นจากชื่อ */
+      if (/^\d{5}$/.test(q)) {
+        if (S[q]) out.push({ href: '#/student/' + q, tag: 'นักเรียน', main: 'รหัสประจำตัว ' + q, sub: 'เปิดข้อมูลรายบุคคล' });
+        else out.push({ href: '#/student/' + q, tag: 'นักเรียน', main: 'รหัสประจำตัว ' + q, sub: 'ไม่พบรายวิชาที่ต้องแก้ไข' });
+      }
+      if (!/^\d+$/.test(q)) {
+        D.teachers.slice().sort(byName).forEach(function (t) {
+          if (out.length > 30) return;
+          if (norm(t.name).indexOf(q) >= 0)
+            out.push({ href: '#/teacher/' + t.id, tag: 'ครู', main: t.name, sub: t.groups.map(gname).join(' · ') || 'ครูผู้สอน' });
+        });
+        D.rooms.forEach(function (r) {
+          if (norm(r.key).indexOf(q) >= 0)
+            out.push({ href: '#/advisor/' + encodeURIComponent(r.key), tag: 'ห้อง', main: r.key, sub: 'สำหรับครูที่ปรึกษา' });
+        });
+      }
+      if (!out.length) {
+        pop.innerHTML = '<div style="padding:12px" class="muted small">' +
+          (/^\d+$/.test(q) ? 'กรอกรหัสประจำตัวนักเรียนให้ครบ 5 หลัก' : 'ไม่พบข้อมูล · ค้นหาได้จากรหัสนักเรียน 5 หลัก ชื่อครู หรือห้องเรียน') + '</div>';
+        pop.hidden = false; return;
+      }
       pop.innerHTML = out.slice(0, 25).map(function (o) {
         return '<a href="' + o.href + '"><span class="tag">' + esc(o.tag) + '</span>' +
           '<span style="min-width:0"><strong>' + esc(o.main) + '</strong><br><span class="small muted">' + esc(o.sub) + '</span></span></a>';

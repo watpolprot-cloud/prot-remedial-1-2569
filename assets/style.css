@@ -213,3 +213,18 @@ td.act{text-align:right; white-space:nowrap; width:1%}
 .db-main{font-weight:600; color:#5a4400}
 .db-note{color:#8a7330}
 .print-head .ph-asof{font-size:.8rem; color:var(--muted); margin-top:2px}
+
+/* ---------- หน้าค้นหารายบุคคล ---------- */
+.lookup{max-width:760px}
+.lookup-form{display:block}
+.lookup-label{display:block; font-weight:600; margin-bottom:8px}
+.lookup-row{display:flex; gap:10px; flex-wrap:wrap}
+.lookup-input{flex:1 1 260px; font-size:1.05rem; padding:11px 14px}
+.lookup-btn{padding:11px 22px; font-size:1rem}
+.lookup-msg{margin-top:12px; min-height:4px}
+.lookup-msg .err{color:var(--g0); font-weight:600}
+.ok-box{border:1px solid #cfe3d3; background:#f3faf4; color:#1f5130; border-radius:9px; padding:12px 14px; font-size:.94rem}
+.golink{display:block; color:var(--text); transition:border-color .12s, box-shadow .12s}
+.golink:hover{text-decoration:none; border-color:var(--navy-2); box-shadow:0 4px 14px rgba(20,40,75,.10)}
+.golink .gl-t{font-size:1.08rem; font-weight:700; color:var(--navy); margin-top:2px}
+.golink .gl-t::after{content:' \203A'}
