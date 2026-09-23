@@ -244,3 +244,11 @@ td.act{text-align:right; white-space:nowrap; width:1%}
 @media(max-width:560px){.tgrid{grid-template-columns:repeat(2,1fr)} .avatar.tph{width:84px; height:112px}}
 .tc-name{flex-direction:column; justify-content:center}
 .tc-name span{display:block; white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis}
+
+/* ---------- รายการที่แก้ไขผ่านแล้ว ---------- */
+.chip-pass{background:#eaf6ec; border-color:#bfe0c6; color:#1f5a2c; font-weight:600}
+.notice.ok{border-left-color:#2e7d43; background:#f3faf4}
+.done-box{margin-top:10px; border:1px dashed #bfe0c6; border-radius:9px; padding:8px 12px; background:#fafdfb}
+.done-box summary{cursor:pointer; font-size:.9rem; color:#1f5a2c; font-weight:600}
+.done-list{margin-top:8px; display:grid; gap:6px}
+.done-item{font-size:.9rem}

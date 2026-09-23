@@ -69,6 +69,10 @@
   }
   function norm(s) { return String(s || '').toLowerCase().replace(/\s+/g, ''); }
   function nf(n) { return Number(n).toLocaleString('th-TH'); }
+  function doneList(s) { return s.done || []; }
+  function passChip(d) {
+    return '<span class="chip chip-pass">ผ่านแล้ว · ได้ ' + esc(d.new) + '</span>';
+  }
   /* ตัดคำนำหน้าชื่อเพื่อใช้เรียงตามตัวอักษร */
   function bareName(n) { return String(n || '').replace(/^(ว่าที่\s*ร\.?\s*ต\.?\s*(หญิง)?\s*|นางสาว|นาง|นาย|Miss\s*|Mrs\.?\s*|Mr\.?\s*|Ms\.?\s*)/i, '').trim(); }
   function byName(a, b) { return bareName(a.name).localeCompare(bareName(b.name), 'th'); }
@@ -125,11 +129,11 @@
     var h = '';
     h += '<h1 class="page-title">ภาพรวมกิจกรรม</h1>' +
       '<p class="page-lead">' + esc(a.orderNo) + ' และประกาศโรงเรียนพรตพิทยพยัต ลงวันที่ ' + esc(a.announceDate) +
-      '<br>ข้อมูลผลการเรียนดึงจากระบบ Prot Care เมื่อ<strong>' + esc(m.asOf) + '</strong></p>';
+      '<br>ข้อมูลผลการเรียนจากระบบ Prot Care ณ <strong>' + esc(m.asOf) + '</strong></p>';
 
     h += '<div class="grid g4">' +
       '<div class="stat accent"><div class="k">นักเรียนที่ต้องแก้ผลการเรียน</div><div class="v">' + nf(m.totalStudentsWithIssue) + '</div><div class="n">จากนักเรียนทั้งหมด ' + nf(m.totalEnrolled) + ' คน</div></div>' +
-      '<div class="stat"><div class="k">รายการวิชาที่ไม่ผ่าน</div><div class="v">' + nf(m.totalSubjectEntries) + '</div><div class="n">ใน 80 ห้องเรียน จาก 84 ห้อง</div></div>' +
+      '<div class="stat"><div class="k">รายการวิชาที่ไม่ผ่าน</div><div class="v">' + nf(m.totalSubjectEntries) + '</div><div class="n">ใน ' + D.rooms.filter(function (r) { return r.n; }).length + ' ห้องเรียน จาก ' + D.rooms.length + ' ห้อง</div></div>' +
       '<div class="stat"><div class="k">อยู่ในขอบข่ายกิจกรรม (0 / ร / มผ)</div><div class="v">' + nf(m.byGrade['0'] + m.byGrade['ร'] + m.byGrade['มผ']) + '</div><div class="n">0 = ' + nf(m.byGrade['0']) + ' · ร = ' + nf(m.byGrade['ร']) + ' · มผ = ' + nf(m.byGrade['มผ']) + '</div></div>' +
       '<div class="stat"><div class="k">ผลการเรียน มส (นอกขอบข่าย)</div><div class="v">' + nf(m.byGrade['มส']) + '</div><div class="n">ต้องเรียนซ้ำรายวิชา</div></div>' +
       '</div>';
@@ -235,12 +239,18 @@
       '<div class="muted">รหัสประจำตัว ' + esc(s.code) + ' · ห้อง ' + esc(s.room) + ' เลขที่ ' + esc(s.no) +
       (room.homeroom ? ' · ห้องประจำ ' + esc(room.homeroom) : '') + '</div>' +
       '<div style="margin-top:10px">' + countChips(s.counts) + '</div>' +
-      '<div class="small muted" style="margin-top:6px">รวม ' + s.items.length + ' รายวิชา · ' + s.credits + ' หน่วยกิต</div>' +
+      (s.items.length ? '<div class="small muted" style="margin-top:6px">รวม ' + s.items.length + ' รายวิชา · ' + s.credits + ' หน่วยกิต</div>' : '') +
       '</div>' +
       '<div style="flex:0 1 300px"><div class="small muted" style="margin-bottom:6px">ครูที่ปรึกษา</div>' +
       (s.adv.length ? s.adv.map(function (id) { return personT(T[id], false); }).join('<div style="height:8px"></div>') : '<span class="muted">—</span>') +
       '</div></div></div></div>';
 
+    if (!s.items.length) {
+      h += '<div class="notice ok" style="margin-top:18px"><strong>นักเรียนแก้ไขผลการเรียนผ่านครบทุกรายวิชาแล้ว</strong> ' +
+        'ไม่มีรายวิชาที่ต้องไปพบครูอีก ณ วันเวลาที่ดึงข้อมูล · ตรวจสอบผลล่าสุดได้ในแอป PROT Student Care</div>';
+      h += resolvedCard(s);
+      return h;
+    }
     h += '<div class="card"><div class="card-head"><h2>สิ่งที่นักเรียนต้องทำ</h2></div><div class="card-body">' +
       '<ol class="list-reset">' +
       '<li>ตรวจสอบผลการเรียนของตนเองในแอป PROT Student Care หลังวันประกาศผล (23 กันยายน 2569)</li>' +
@@ -287,7 +297,19 @@
         '</td></tr>';
     });
     h += '</tbody></table></div></div>';
+    h += resolvedCard(s);
     return h;
+  }
+  function resolvedCard(s) {
+    var d = doneList(s);
+    if (!d.length) return '';
+    var h = '<div class="card"><div class="card-head"><h2>รายวิชาที่แก้ไขผ่านแล้ว</h2><span class="small muted">' + d.length + ' รายการ</span></div>' +
+      '<div class="table-scroll"><table><thead><tr><th>รหัสวิชา</th><th>รายวิชา</th><th>ผลเดิม</th><th>ผลปัจจุบัน</th><th>ครูประจำวิชา</th></tr></thead><tbody>';
+    d.forEach(function (x) {
+      h += '<tr><td class="nowrap">' + esc(x.code) + '</td><td>' + esc(x.name) + '</td><td>' + gb(x.old) + '</td>' +
+        '<td>' + passChip(x) + '</td><td>' + personT(T[x.t]) + '</td></tr>';
+    });
+    return h + '</tbody></table></div></div>';
   }
 
   /* ================= TEACHERS ================= */
@@ -394,7 +416,7 @@
     }
     h += '<div class="card"><div class="card-head"><h2>นักเรียนกลุ่มเป้าหมาย แยกตามรายวิชา</h2>' +
       '<div class="no-print"><button class="btn" onclick="window.print()">พิมพ์รายชื่อ</button></div></div><div class="card-body">';
-    t.subjects.slice().sort(function (a, b) { return b.students.length - a.students.length; }).forEach(function (sub) {
+    t.subjects.slice().sort(function (a, b) { return b.students.length - a.students.length || a.code.localeCompare(b.code); }).forEach(function (sub) {
       var rows = sub.students.map(function (x) { return { s: S[x.code], grade: x.grade }; })
         .filter(function (x) { return x.s; })
         .sort(function (a, b) { return roomSort(a.s.room, b.s.room) || (+a.s.no - +b.s.no); });
@@ -402,8 +424,10 @@
       rows.forEach(function (r) { cnt[r.grade]++; });
       h += '<div class="subject-row"><div class="top">' +
         '<div><div class="sname">' + esc(sub.name) + '</div><div class="scode">' + esc(sub.code) + ' · สถานี ' + esc(gname(sub.g)) + '</div></div>' +
-        '<div>' + countChips(cnt) + ' &nbsp; <span class="chip">' + rows.length + ' คน</span></div></div>' +
-        '<div class="table-scroll" style="margin-top:10px"><table><thead><tr><th style="width:40px"></th><th>นักเรียน</th><th>ห้อง</th><th>ผล</th><th class="no-print">ดำเนินการแล้ว</th></tr></thead><tbody>';
+        '<div>' + countChips(cnt) + ' &nbsp; <span class="chip">ค้าง ' + rows.length + ' คน</span>' +
+        ((sub.done || []).length ? ' <span class="chip chip-pass">ผ่านแล้ว ' + sub.done.length + ' คน</span>' : '') + '</div></div>';
+      if (!rows.length) h += '<div class="small muted" style="margin-top:8px">ไม่มีนักเรียนค้างในรายวิชานี้แล้ว</div>';
+      else h += '<div class="table-scroll" style="margin-top:10px"><table><thead><tr><th style="width:40px"></th><th>นักเรียน</th><th>ห้อง</th><th>ผล</th><th class="no-print">ดำเนินการแล้ว</th></tr></thead><tbody>';
       rows.forEach(function (r) {
         var key = 'prot1_2569:' + t.id + ':' + sub.code + ':' + r.s.code;
         var done = store(key) ? 'checked' : '';
@@ -413,7 +437,17 @@
           '<td>' + gb(r.grade) + '</td>' +
           '<td class="no-print"><label class="checkline"><input type="checkbox" data-k="' + key + '" ' + done + '><span class="small muted">บันทึกในเครื่องนี้</span></label></td></tr>';
       });
-      h += '</tbody></table></div></div>';
+      if (rows.length) h += '</tbody></table></div>';
+      var dn = (sub.done || []).map(function (x) { return { s: S[x.code], d: x }; }).filter(function (x) { return x.s; })
+        .sort(function (a, b) { return roomSort(a.s.room, b.s.room) || (+a.s.no - +b.s.no); });
+      if (dn.length) {
+        h += '<details class="done-box"><summary>นักเรียนที่แก้ไขผ่านแล้ว ' + dn.length + ' คน</summary><div class="done-list">' +
+          dn.map(function (x) {
+            return '<div class="done-item">' + esc(x.s.name) + ' <span class="small muted">' + esc(x.s.room) + ' เลขที่ ' + esc(x.s.no) + '</span> ' +
+              gb(x.d.old) + ' ' + passChip(x.d) + '</div>';
+          }).join('') + '</div></details>';
+      }
+      h += '</div>';
     });
     h += '</div></div>';
     setTimeout(function () {
@@ -525,7 +559,8 @@
         '<div style="min-width:0"><div class="nm">' + esc(s.name) + '</div>' +
         '<div class="mt">เลขที่ ' + esc(s.no) + ' · ' + esc(s.code) + '</div>' +
         '<div style="margin-top:4px">' + countChips(s.counts) + '</div>' +
-        '<div class="mt" style="margin-top:4px">' + s.items.length + ' รายวิชา</div>' +
+        '<div class="mt" style="margin-top:4px">' + (s.items.length ? 'ค้าง ' + s.items.length + ' รายวิชา' : 'ผ่านครบทุกรายวิชาแล้ว') +
+        (doneList(s).length ? ' · แก้ผ่านแล้ว ' + doneList(s).length : '') + '</div>' +
         '<div class="go">ดูรายละเอียด</div></div></a>';
     });
     h += '</div></div></div>';
@@ -623,7 +658,7 @@
       m.verification.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') +
       '<li>การจัดสถานีของแต่ละรายวิชา อ้างอิงกลุ่มที่ครูผู้สอนปฏิบัติหน้าที่ตามคำสั่งที่ 239/2569 กรณีรายวิชาอยู่คนละกลุ่มกับครูผู้สอน ระบบจะแสดงหมายเหตุกำกับไว้</li>' +
       '</ul>' +
-      '<div class="notice info" style="margin-top:12px"><strong>ข้อมูลชุดนี้ดึงจากระบบ Prot Care เมื่อ' + esc(m.asOf) + '</strong>' +
+      '<div class="notice info" style="margin-top:12px"><strong>ข้อมูลผลการเรียนชุดนี้เป็นสถานะ ณ ' + esc(m.asOf) + '</strong>' +
       ' — เป็นสถานะผลการเรียน ณ เวลาดังกล่าว หากมีการแก้ไขผลการเรียนในระบบหลังเวลานี้ ให้ยึดข้อมูลในระบบเป็นหลัก ' +
       'และเมื่อปรับปรุงข้อมูลชุดใหม่ วันและเวลาที่แสดงทุกหน้าจะเปลี่ยนตามอัตโนมัติ</div>' +
       '</div></div>';
@@ -697,9 +732,9 @@
 
   window.addEventListener('hashchange', route);
   document.getElementById('dbMain').textContent =
-    'ข้อมูลผลการเรียนชุดนี้ดึงจากระบบ Prot Care เมื่อ' + D.meta.asOf;
+    'ข้อมูลผลการเรียนจากระบบ Prot Care ณ ' + D.meta.asOf;
   document.getElementById('footMeta').textContent =
-    'ดึงข้อมูลจากระบบ ' + D.meta.asOf + ' · นักเรียนที่ต้องแก้ผลการเรียน ' + nf(D.meta.totalStudentsWithIssue) +
+    'ข้อมูลผลการเรียน ณ ' + D.meta.asOf + ' · นักเรียนที่ต้องแก้ผลการเรียน ' + nf(D.meta.totalStudentsWithIssue) +
     ' คน · ' + nf(D.meta.totalSubjectEntries) + ' รายการวิชา';
   var ph = document.querySelector('.print-head > div');
   if (ph) ph.insertAdjacentHTML('beforeend',
