@@ -252,3 +252,16 @@ td.act{text-align:right; white-space:nowrap; width:1%}
 .done-box summary{cursor:pointer; font-size:.9rem; color:#1f5a2c; font-weight:600}
 .done-list{margin-top:8px; display:grid; gap:6px}
 .done-item{font-size:.9rem}
+
+/* ครูที่ปรึกษา: การ์ดรายห้อง */
+.rgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px}
+.rcard{display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;
+  padding:14px 12px; border:1px solid var(--line); border-radius:12px; background:#fff}
+.rcard[hidden]{display:none}
+.rc-room{font-size:1.35rem; font-weight:700; color:var(--navy-2); line-height:1.2}
+.rc-photos{display:flex; justify-content:center; gap:6px; min-height:72px}
+.avatar.rph{width:54px; height:72px; border-radius:6px}
+.rc-names{display:flex; flex-direction:column; font-size:.88rem; line-height:1.4; min-height:2.8em; justify-content:center}
+.rc-names span{white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis}
+.rc-btn{margin-top:auto}
+@media(max-width:560px){.rgrid{grid-template-columns:repeat(2,1fr)} .avatar.rph{width:46px; height:62px} .rc-names{font-size:.82rem}}

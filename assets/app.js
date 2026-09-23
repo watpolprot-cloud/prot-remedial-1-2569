@@ -177,7 +177,7 @@
     h += '<div class="grid g3" style="margin-top:18px">' +
       '<a class="stat golink" href="#/students"><div class="k">สำหรับนักเรียน</div><div class="gl-t">ตรวจสอบรายบุคคล</div><div class="n">กรอกรหัสประจำตัว 5 หลัก</div></a>' +
       '<a class="stat golink" href="#/teachers"><div class="k">สำหรับครูประจำวิชา</div><div class="gl-t">ดูรายชื่อในรายวิชาของท่าน</div><div class="n">เลือกชื่อของท่าน</div></a>' +
-      '<a class="stat golink" href="#/advisors"><div class="k">สำหรับครูที่ปรึกษา</div><div class="gl-t">กำกับติดตามห้องของท่าน</div><div class="n">เลือกห้องเรียน</div></a>' +
+      '<a class="stat golink" href="#/advisors"><div class="k">สำหรับครูที่ปรึกษา</div><div class="gl-t">กำกับติดตามห้องของท่าน</div><div class="n">ดูรายชื่อห้องเรียน</div></a>' +
       '</div>';
 
     h += '<div class="notice warn" style="margin-top:18px"><strong>ข้อควรทราบ</strong> ผลการเรียน “มส” ไม่อยู่ในขอบข่ายของกิจกรรมนี้ ' +
@@ -465,29 +465,52 @@
     D.rooms.slice().sort(function (a, b) { return roomSort(a.key, b.key); }).forEach(function (r) {
       var L = r.key.split('/')[0]; (byLv[L] = byLv[L] || []).push(r);
     });
-    var opts = '<option value="">— เลือกห้องเรียน —</option>' + Object.keys(byLv).map(function (L) {
-      return '<optgroup label="' + esc(byLv[L][0].level || L) + '">' + byLv[L].map(function (r) {
-        var names = r.adv.map(function (id) { return T[id] ? T[id].name : ''; }).filter(Boolean).join(', ');
-        return '<option value="' + esc(r.key) + '">' + esc(r.key) + (names ? ' · ' + esc(names) : '') + '</option>';
-      }).join('') + '</optgroup>';
-    }).join('');
+    var lvKeys = Object.keys(byLv);
+    var lvId = function (L) { return 'lv-' + L.replace(/[^0-9]/g, ''); };
     var h = '<h1 class="page-title">ครูที่ปรึกษา</h1>' +
-      '<p class="page-lead">เลือกห้องที่ท่านเป็นครูที่ปรึกษา เพื่อกำกับติดตามว่านักเรียนคนใดต้องไปพบครูท่านใด รอบใด</p>';
-    h += '<div class="card lookup"><div class="card-body">' +
-      '<form id="aForm" class="lookup-form" autocomplete="off">' +
-      '<label for="aSel" class="lookup-label">ห้องเรียน · ครูที่ปรึกษา</label>' +
-      '<div class="lookup-row">' +
-      '<select id="aSel" class="input lookup-input">' + opts + '</select>' +
-      '<button type="submit" class="btn btn-primary lookup-btn">เปิดข้อมูลห้อง</button>' +
-      '</div><div id="aMsg" class="lookup-msg"></div></form>' +
-      privacyNote('หน้านี้แสดงข้อมูลเฉพาะห้องที่ท่านเลือกเท่านั้น ไม่มีการแสดงหรือเปรียบเทียบจำนวนนักเรียนระหว่างห้อง') +
+      '<p class="page-lead">กดปุ่ม “ดูรายละเอียด” ที่ห้องที่ท่านเป็นครูที่ปรึกษา เพื่อกำกับติดตามว่านักเรียนคนใดต้องไปพบครูท่านใด รอบใด</p>';
+    h += '<div class="card"><div class="card-body">' +
+      '<div class="toolbar"><div class="grow"><input id="aFind" class="input" type="search" placeholder="พิมพ์ชื่อห้อง เช่น 5/4 หรือชื่อครูที่ปรึกษา"></div></div>' +
+      '<div class="tjump">' + lvKeys.map(function (L) {
+        return '<a href="#" data-jump="' + lvId(L) + '">' + esc(byLv[L][0].level || L) + '</a>';
+      }).join('') + '</div>' +
+      privacyNote('หน้านี้แสดงเฉพาะห้องเรียนและรายชื่อครูที่ปรึกษา ไม่แสดงหรือเปรียบเทียบจำนวนนักเรียนระหว่างห้อง · ข้อมูลนักเรียนจะแสดงเมื่อกดเข้าไปที่ห้องของท่านเท่านั้น') +
       '</div></div>';
+    lvKeys.forEach(function (L) {
+      h += '<div class="card tgroup agroup" id="' + lvId(L) + '"><div class="card-head"><h2>' + esc(byLv[L][0].level || L) + '</h2></div>' +
+        '<div class="card-body"><div class="rgrid">';
+      byLv[L].forEach(function (r) {
+        var ts = r.adv.map(function (id) { return T[id]; }).filter(Boolean);
+        var key = norm(r.key + ' ' + r.key.replace('ม.', '') + ' ' + ts.map(function (t) { return t.name; }).join(' '));
+        h += '<div class="rcard" data-name="' + esc(key) + '">' +
+          '<div class="rc-room">' + esc(r.key) + '</div>' +
+          '<div class="rc-photos">' + (ts.length ? ts.map(function (t) { return avatar(tPhoto(t), t.name, 'rph'); }).join('') : '') + '</div>' +
+          '<div class="rc-names">' + (ts.length ? ts.map(function (t) { return '<span>ครู' + (/^[A-Za-z]/.test(bareName(t.name)) ? ' ' : '') + esc(bareName(t.name)) + '</span>'; }).join('')
+            : '<span class="muted">—</span>') + '</div>' +
+          '<a class="btn btn-sm btn-open rc-btn" href="#/advisor/' + encodeURIComponent(r.key) + '">ดูรายละเอียด</a>' +
+          '</div>';
+      });
+      h += '</div><div class="empty tnone" hidden>ไม่พบห้องในระดับชั้นนี้</div></div></div>';
+    });
     setTimeout(function () {
-      var f = document.getElementById('aForm'), sel = document.getElementById('aSel');
-      f.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (!sel.value) { document.getElementById('aMsg').innerHTML = '<span class="err">กรุณาเลือกห้องเรียน</span>'; return; }
-        location.hash = '#/advisor/' + encodeURIComponent(sel.value);
+      var inp = document.getElementById('aFind');
+      inp.addEventListener('input', function () {
+        var q = norm(inp.value);
+        document.querySelectorAll('.agroup').forEach(function (g) {
+          var shown = 0;
+          g.querySelectorAll('.rcard').forEach(function (c) {
+            var ok = !q || c.getAttribute('data-name').indexOf(q) >= 0;
+            c.hidden = !ok; if (ok) shown++;
+          });
+          g.hidden = q && !shown;
+        });
+      });
+      document.querySelectorAll('[data-jump]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          var el = document.getElementById(a.getAttribute('data-jump'));
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
       });
     }, 0);
     return h;
@@ -495,10 +518,11 @@
 
   function viewAdvisor(key) {
     var r = R[key];
-    if (!r) return '<div class="card"><div class="empty">ไม่พบห้อง ' + esc(key) + '<br><a href="#/advisors">กลับไปเลือกห้อง</a></div></div>';
+    if (!r) return '<div class="card"><div class="empty">ไม่พบห้อง ' + esc(key) + '<br><a href="#/advisors">กลับไปหน้ารายชื่อห้อง</a></div></div>';
     var list = D.students.filter(function (s) { return s.room === key; })
       .sort(function (a, b) { return (+a.no) - (+b.no); });
-    var h = '<div class="card"><div class="card-body"><div style="display:flex; gap:18px; flex-wrap:wrap; justify-content:space-between">' +
+    var h = '<div class="no-print" style="margin-bottom:12px"><a class="btn btn-sm" href="#/advisors">กลับไปหน้ารายชื่อห้อง</a></div>' +
+      '<div class="card"><div class="card-body"><div style="display:flex; gap:18px; flex-wrap:wrap; justify-content:space-between">' +
       '<div><div class="small muted">' + esc(r.level) + (r.homeroom ? ' · ห้องประจำ ' + esc(r.homeroom) : '') + '</div>' +
       '<h1 class="page-title" style="margin:2px 0">ห้อง ' + esc(r.key) + '</h1>' +
       '<div class="muted">ครูที่ปรึกษา</div><div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:6px">' +
