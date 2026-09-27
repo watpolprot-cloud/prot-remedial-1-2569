@@ -139,28 +139,24 @@
       '</div>';
 
     h += '<div class="card" style="margin-top:18px"><div class="card-head"><h2>กำหนดการสำคัญ</h2>' +
-      '<span class="chip">รอบเช้า ' + esc(a.morning) + ' · รอบบ่าย ' + esc(a.afternoon) + '</span></div><div class="card-body"><div class="tl">' +
-      tl(a.resultDate, 'ประกาศผลการเรียน ภาคเรียนที่ 1/2569', 'ผ่านระบบ Prot Care · นักเรียนและผู้ปกครองดูผลในแอป PROT Student Care') +
-      tl(a.round1.days, 'กิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว ครั้งที่ 1', 'ณ ' + a.round1.place + ' · ครูผู้สอนส่งผลการแก้ไข ' + a.round1.submit) +
-      tl('อังคารที่ 29 กันยายน 2569', 'ประกาศผลการแก้ไขผลการเรียน ครั้งที่ 1', 'นักเรียนที่ยังไม่ผ่านต้องเข้าร่วมกิจกรรมครั้งที่ 2') +
-      tl(a.round2.days, 'กิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว ครั้งที่ 2', 'ณ ' + a.round2.place + ' · ครูผู้สอนส่งผลการแก้ไข ' + a.round2.submit) +
-      tl('ศุกร์ที่ 2 ตุลาคม 2569', 'ประกาศผลการแก้ไขผลการเรียน ครั้งที่ 2', 'สิ้นสุดกรอบเวลาของกิจกรรม') +
-      '</div></div></div>';
+      '<span class="chip chip-alert">ปรับเป็นแบบออนไลน์ ตั้งแต่ 28 ก.ย. 2569</span></div><div class="card-body"><div class="tl">' +
+      tl(a.resultDate, 'ประกาศผลการเรียน ภาคเรียนที่ 1/2569', 'ผ่านระบบ Prot Care · นักเรียนและผู้ปกครองดูผลในแอป PROT Student Care', 'ดำเนินการแล้ว') +
+      tl('พฤหัสบดีที่ 24 กันยายน 2569', 'แก้ไขผลการเรียน ครั้งที่ 1 รอบที่ 1 (เช้า) และรอบที่ 2 (บ่าย)', 'ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ', 'ดำเนินการแล้ว') +
+      NEWCAL.map(function (r) { return tl(r.d, r.a + (r.em ? ' ' + r.em : ''), r.t + ' · ' + r.w); }).join('') +
+      '</div><div class="small" style="margin-top:10px"><a href="#/schedule">ดูหน้าปฏิทินฉบับเต็มและรายการที่ยกเลิก</a></div></div></div>';
 
     h += '<div class="card"><div class="card-head"><h2>ปริมาณงานของแต่ละกลุ่มสาระการเรียนรู้</h2>' +
-      '<span class="small muted">ประมาณการจำนวนนักเรียนที่จะเข้าพบในแต่ละสถานี</span></div><div class="table-scroll">' +
+      '<span class="small muted">นับจากผลการเรียน ณ วันเวลาที่ดึงข้อมูล</span></div><div class="table-scroll">' +
       '<table><thead><tr><th>กลุ่มสาระ / กลุ่มงาน</th><th class="num">นักเรียน</th><th class="num">รายการวิชา</th>' +
-      '<th>ครั้งที่ 1</th><th>ครั้งที่ 2</th></tr></thead><tbody>';
+      '</tr></thead><tbody>';
     GKEYS.map(function (k) { return { k: k, l: D.stationLoad[k] || { students: 0, entries: 0 } }; })
       .sort(function (x, y) { return y.l.students - x.l.students; })
       .forEach(function (o) {
         var g = D.groups[o.k];
-        h += '<tr><td><a href="#/schedule">' + esc(g.name) + '</a></td>' +
+        h += '<tr><td>' + esc(g.name) + '</td>' +
           '<td class="num"><div style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><span>' + o.l.students + '</span>' +
           '<span class="bar" style="width:90px"><span style="width:' + Math.round(o.l.students / maxLoad * 100) + '%"></span></span></div></td>' +
-          '<td class="num">' + o.l.entries + '</td>' +
-          '<td class="small">' + sessTxt(o.k, 'r1') + '</td>' +
-          '<td class="small">' + sessTxt(o.k, 'r2') + '</td></tr>';
+          '<td class="num">' + o.l.entries + '</td></tr>';
       });
     h += '</tbody></table></div></div>';
 
@@ -184,16 +180,58 @@
       'นักเรียนต้องเรียนซ้ำรายวิชาตามระเบียบการวัดและประเมินผลของโรงเรียน · ในหน้าเว็บนี้จึงแสดงรายการ มส ไว้เพื่อการกำกับติดตามของครูที่ปรึกษาเท่านั้น</div>';
     return h;
   }
-  function tl(date, title, sub) {
-    return '<div class="tl-item"><div class="tl-date">' + esc(date) + '</div>' +
-      '<div><div><strong>' + esc(title) + '</strong></div><div class="small muted">' + esc(sub) + '</div></div></div>';
+  function tl(date, title, sub, status) {
+    return '<div class="tl-item' + (status ? ' tl-done' : '') + '"><div class="tl-date">' + esc(date) + '</div>' +
+      '<div><div><strong>' + esc(title) + '</strong>' + (status ? ' <span class="chip chip-done">' + esc(status) + '</span>' : '') + '</div>' +
+      '<div class="small muted">' + esc(sub) + '</div></div></div>';
+  }
+
+  /* ---------- ปฏิทินใหม่ (สถานการณ์น้ำท่วม มีผลตั้งแต่ 28 ก.ย. 2569) ---------- */
+  /* ข้อความตามประกาศ "แจ้งปรับเปลี่ยนปฏิทินกิจกรรมการเรียนซ่อมเสริมและสอบแก้ตัว ภาคเรียนที่ 1 ปีการศึกษา 2569 เนื่องจากสถานการณ์น้ำท่วม" */
+  var NEWCAL = [
+    { d: 'จันทร์ที่ 28 – พุธที่ 30 กันยายน 2569', t: 'ในวันทำการ', a: 'แก้ไขผลการเรียนแบบออนไลน์ ครั้งที่ 1 (ต่อ) เปิดให้ทุกกลุ่มสาระการเรียนรู้ นักเรียนติดต่อครูประจำวิชา รับงานและส่งงาน', em: 'ผ่านช่องทางออนไลน์ของครูประจำวิชาทุกรายวิชา', w: 'นักเรียน / ครูประจำวิชา' },
+    { d: 'พุธที่ 30 กันยายน 2569', t: '16.00 น.', a: 'ปิดรับงานจากนักเรียน', w: 'ครูประจำวิชา' },
+    { d: 'พฤหัสบดีที่ 1 ตุลาคม 2569', t: 'ภายใน 12.00 น.', a: 'ครูแก้ไขผลการเรียนในระบบ Prot Care ให้แล้วเสร็จ', w: 'ครูประจำวิชา' },
+    { d: 'พฤหัสบดีที่ 1 ตุลาคม 2569', t: '15.30 น.', a: 'อนุมัติผลการเรียนในระบบ Prot Care', w: 'กลุ่มงานวัดผลและประเมินผล' },
+    { d: 'ศุกร์ที่ 2 ตุลาคม 2569', t: '09.00 น.', a: 'ประกาศผลการแก้ไขผลการเรียนผ่านระบบ Prot Care', w: 'กลุ่มงานวัดผลและประเมินผล' },
+    { d: 'ภาคเรียนที่ 2 ปีการศึกษา 2569', t: 'กำหนดวันแจ้งภายหลัง', a: 'แก้ไขผลการเรียน ครั้งที่ 2 สำหรับนักเรียนที่ยังไม่ผ่าน', w: 'นักเรียน / ครูประจำวิชา' }
+  ];
+  var DEADLINE_TXT = 'ติดต่อครูประจำวิชาทางช่องทางออนไลน์ ภายในวันพุธที่ 30 กันยายน 2569 เวลา 16.00 น.';
+  function calTable() {
+    return '<div class="cal"><table><thead><tr><th>วัน เดือน ปี</th><th>เวลา</th><th>กิจกรรม</th><th>ผู้ดำเนินการ</th></tr></thead><tbody>' +
+      NEWCAL.map(function (r) {
+        return '<tr><td class="cal-d">' + esc(r.d) + '</td><td class="cal-t">' + esc(r.t) + '</td>' +
+          '<td class="cal-a">' + esc(r.a) + (r.em ? ' <strong class="u">' + esc(r.em) + '</strong>' : '') + '</td><td class="cal-w">' + esc(r.w) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+  /* ครั้งที่ 1: รอบที่ 1–2 (24 ก.ย.) ดำเนินการแล้ว · รอบที่ 3 (28 ก.ย.) ยกเลิก */
+  function r1Status(k) {
+    var g = D.groups[k]; if (!g) return null;
+    return g.r1.round === 3 ? 'cancel' : 'done';
+  }
+
+  /* ---------- ช่องทางติดต่อออนไลน์ของครู (data/contacts.js) ---------- */
+  var CONTACT = {};
+  (function () {
+    var src = window.PROT_CONTACTS || {};
+    Object.keys(src).forEach(function (n) { CONTACT[norm(bareName(n))] = String(src[n] || '').trim(); });
+  })();
+  function contactOf(t) { return t ? (CONTACT[norm(bareName(t.name))] || '') : ''; }
+  function linkify(txt) {
+    return esc(txt).replace(/https?:\/\/[^\s<]+/g, function (u) {
+      return '<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>';
+    });
+  }
+  function contactHtml(t) {
+    var c = contactOf(t);
+    return c ? linkify(c) : '<span class="muted">รอข้อมูลจากกลุ่มสาระการเรียนรู้</span>';
   }
 
   /* ================= STUDENTS ================= */
   /* แสดงเฉพาะรายบุคคล: ต้องกรอกรหัสประจำตัวให้ตรงทั้ง 5 หลัก ไม่มีการแสดงรายชื่อรวม */
   function viewStudents(q, miss) {
     var h = '<h1 class="page-title">ตรวจสอบรายบุคคล สำหรับนักเรียน</h1>' +
-      '<p class="page-lead">กรอกรหัสประจำตัวนักเรียนของตนเอง เพื่อดูว่าต้องไปพบครูท่านใด วันใด เวลาใด และที่ไหน</p>';
+      '<p class="page-lead">กรอกรหัสประจำตัวนักเรียนของตนเอง เพื่อดูรายวิชาที่ต้องแก้ไขผลการเรียน และครูประจำวิชาที่ต้องติดต่อทางช่องทางออนไลน์</p>';
     h += '<div class="card lookup"><div class="card-body">' +
       '<form id="stuForm" class="lookup-form" autocomplete="off">' +
       '<label for="stuCode" class="lookup-label">รหัสประจำตัวนักเรียน</label>' +
@@ -251,52 +289,35 @@
       h += resolvedCard(s);
       return h;
     }
-    h += '<div class="card"><div class="card-head"><h2>สิ่งที่นักเรียนต้องทำ</h2></div><div class="card-body">' +
-      '<ol class="list-reset">' +
-      '<li>ตรวจสอบผลการเรียนของตนเองในแอป PROT Student Care หลังวันประกาศผล (23 กันยายน 2569)</li>' +
-      '<li>ไปพบครูประจำวิชาตามวัน เวลา และสถานที่ในตารางด้านล่าง พร้อม<strong>แสดงหน้าจอ “ผลการเรียนที่ยังไม่ผ่าน”</strong> ในแอปให้ครูดู — ไม่ต้องติดต่อสำนักงานวิชาการ</li>' +
-      '<li>รับภาระงานหรือเข้าสอบแก้ตัว และส่งงานให้ครบก่อนกำหนด ครั้งที่ 1 ภายใน 28 ก.ย. 2569 เวลา 12.00 น. · ครั้งที่ 2 ภายใน 1 ต.ค. 2569 เวลา 12.00 น.</li>' +
-      '<li>หากติดหลายรายวิชาในรอบเดียวกัน ให้แบ่งเวลาเข้าพบครูให้ครบทุกวิชาภายในรอบนั้น</li>' +
-      '<li>แต่งกายด้วยเครื่องแบบนักเรียนให้ถูกต้อง และนำสมาร์ตโฟนที่ใช้ระบบ Prot Care ได้มาด้วยทุกครั้ง</li>' +
-      '</ol></div></div>';
+    h += '<div class="notice alert" style="margin-top:18px"><strong>' + esc(DEADLINE_TXT) + '</strong>' +
+      '<div class="small" style="margin-top:4px">ไม่ต้องมาโรงเรียน · ประกาศผลวันศุกร์ที่ 2 ตุลาคม 2569 เวลา 09.00 น. ผ่านระบบ Prot Care · ขอให้นักเรียนดูแลความปลอดภัยของตนเองและครอบครัวเป็นสำคัญ</div></div>';
+
+    h += '<div class="card"><div class="card-head"><h2>รายวิชาที่ยังไม่ผ่าน</h2><span class="small muted">' + s.items.length + ' รายการ</span></div><div class="table-scroll"><table>' +
+      '<thead><tr><th>รหัสวิชา</th><th>รายวิชา</th><th class="num">หน่วยกิต</th><th>ผล</th><th>ครูประจำวิชา</th></tr></thead><tbody>';
+    s.items.forEach(function (it) {
+      h += '<tr><td class="nowrap">' + esc(it.code) + '</td><td>' + esc(it.name) + '</td><td class="num">' + esc(it.credit) + '</td>' +
+        '<td>' + gb(it.grade) + (it.grade === 'มส' ? ' <span class="chip chip-warn">นอกขอบข่าย</span>' : '') + '</td>' +
+        '<td>' + personT(T[it.t]) + '</td></tr>';
+    });
+    h += '</tbody></table></div></div>';
 
     if (msItems.length) {
       h += '<div class="notice warn" style="margin-top:18px"><strong>นักเรียนมีผลการเรียน มส จำนวน ' + msItems.length + ' รายวิชา</strong> ' +
         'ซึ่งไม่อยู่ในขอบข่ายของกิจกรรมนี้ ต้องเรียนซ้ำรายวิชาตามระเบียบการวัดและประเมินผลของโรงเรียน โปรดติดต่อครูที่ปรึกษาเพื่อดำเนินการต่อไป</div>';
     }
 
-    ['r1', 'r2'].forEach(function (which) {
-      var label = which === 'r1' ? 'ครั้งที่ 1 · 24 และ 28 กันยายน 2569' : 'ครั้งที่ 2 · 30 กันยายน – 1 ตุลาคม 2569';
-      var sub = which === 'r1' ? 'ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ' : 'ณ ห้อง 122 123 124 และ 125 อาคาร 1 (เฉพาะผู้ที่ยังไม่ผ่านหลังประกาศผล 29 ก.ย.)';
-      var sess = sessionsOf({ items: inScope }, which);
-      h += '<div class="card"><div class="card-head"><h2>ตารางไปพบครู — ' + label + '</h2><span class="small muted">' + esc(sub) + '</span></div><div class="card-body">';
-      if (!sess.length) { h += '<div class="muted">ไม่มีรายวิชาที่อยู่ในขอบข่ายของกิจกรรม</div>'; }
-      sess.forEach(function (x) {
-        h += '<div class="sess" style="margin-bottom:12px"><div class="lbl">รอบที่ ' + x.round + '</div>' +
-          '<div class="d">' + esc(x.day) + ' · ' + esc(x.time) + '</div>' +
-          '<div class="p">' + esc(x.place) + '</div>' +
-          '<div style="margin-top:8px" class="table-scroll"><table><thead><tr><th>รายวิชา</th><th>ผล</th><th>ครูประจำวิชา</th></tr></thead><tbody>';
-        x.items.forEach(function (it) {
-          h += '<tr><td><div class="sname">' + esc(it.name) + '</div><div class="scode">' + esc(it.code) + ' · ' + esc(gname(it.g)) + '</div></td>' +
-            '<td>' + gb(it.grade) + '</td><td>' + personT(T[it.t]) + '</td></tr>';
-        });
-        h += '</tbody></table></div></div>';
-      });
-      h += '</div></div>';
-    });
-
-    h += '<div class="card"><div class="card-head"><h2>รายวิชาที่ยังไม่ผ่านทั้งหมด</h2><span class="small muted">' + s.items.length + ' รายการ</span></div><div class="table-scroll"><table>' +
-      '<thead><tr><th>รหัสวิชา</th><th>รายวิชา</th><th class="num">หน่วยกิต</th><th>ผล</th><th>ครูประจำวิชา</th><th>สถานีที่ต้องไปพบ</th></tr></thead><tbody>';
-    s.items.forEach(function (it) {
-      h += '<tr><td class="nowrap">' + esc(it.code) + '</td><td>' + esc(it.name) + '</td><td class="num">' + esc(it.credit) + '</td>' +
-        '<td>' + gb(it.grade) + (it.grade === 'มส' ? ' <span class="chip chip-warn">นอกขอบข่าย</span>' : '') + '</td>' +
-        '<td>' + personT(T[it.t]) + '</td>' +
-        '<td class="small">' + esc(gname(it.g)) +
-        (it.note === 'subject_group_differs' ? '<br><span class="muted">รายวิชาอยู่กลุ่ม ' + esc(gname(it.sg)) + ' แต่ครูผู้สอนปฏิบัติหน้าที่กับกลุ่ม ' + esc(gname(it.g)) + '</span>' : '') +
-        (it.note === 'teacher_not_in_order' ? '<br><span class="muted">ครูผู้สอนไม่ปรากฏในคำสั่ง ให้ไปตามกลุ่มสาระของรายวิชา</span>' : '') +
-        '</td></tr>';
-    });
-    h += '</tbody></table></div></div>';
+    if (inScope.length) {
+      h += '<div class="card"><div class="card-head"><h2>ขั้นตอนสำหรับนักเรียน</h2></div><div class="card-body">' +
+        '<ol class="list-reset">' +
+        '<li>เปิดแอป Prot Care จับภาพหน้าจอ “ผลการเรียนที่ยังไม่ผ่าน”</li>' +
+        '<li>ส่งภาพให้ครูประจำวิชาทางช่องทางออนไลน์ของรายวิชา เพื่อรับภาระงาน</li>' +
+        '<li>ทำงานและส่งภายใน 30 ก.ย. 16.00 น. ติดต่อด้วยการพิมพ์ข้อความเท่านั้น</li>' +
+        '<li>ตรวจสอบผลในแอป วันศุกร์ที่ 2 ตุลาคม 2569</li>' +
+        '</ol>' +
+        '<div class="small muted" style="margin-top:10px">ติดต่อผ่านช่องทางออนไลน์ที่ครูประจำวิชากำหนด · ' +
+        'นักเรียนที่บ้านได้รับผลกระทบจากน้ำท่วม หรือไม่มีอุปกรณ์/อินเทอร์เน็ต ให้แจ้งครูที่ปรึกษา</div>' +
+        '</div></div>';
+    }
     h += resolvedCard(s);
     return h;
   }
@@ -325,7 +346,7 @@
     if (other.length) sections.push({ key: 'OTHER', title: 'ครูผู้สอนอื่น ๆ', list: other.sort(byName) });
 
     var h = '<h1 class="page-title">ครูประจำวิชา</h1>' +
-      '<p class="page-lead">กดปุ่ม “ดูรายละเอียด” ที่ชื่อของท่าน เพื่อเปิดรายชื่อนักเรียนกลุ่มเป้าหมายในรายวิชาของท่าน พร้อมวัน เวลา และสถานที่ปฏิบัติหน้าที่</p>';
+      '<p class="page-lead">กดปุ่ม “ดูรายละเอียด” ที่ชื่อของท่าน เพื่อเปิดรายชื่อนักเรียนกลุ่มเป้าหมายในรายวิชาของท่าน</p>';
     h += '<div class="card"><div class="card-body">' +
       '<div class="toolbar"><div class="grow"><input id="tFind" class="input" type="search" placeholder="พิมพ์ชื่อของท่านเพื่อค้นหาได้เร็วขึ้น"></div></div>' +
       '<div class="tjump">' + sections.map(function (sec) {
@@ -343,6 +364,7 @@
             var i = n.indexOf(' ');
             return i > 0 ? '<span>' + esc(n.slice(0, i)) + '</span><span>' + esc(n.slice(i + 1)) + '</span>' : '<span>' + esc(n) + '</span>';
           })(String(t.name).replace(/\s+/g, ' ').trim()) + '</div>' +
+          '<div class="tc-contact"><div class="k">ช่องทางติดต่อออนไลน์</div><div class="v">' + contactHtml(t) + '</div></div>' +
           '<a class="btn btn-sm btn-open tc-btn" href="#/teacher/' + t.id + '">ดูรายละเอียด</a>' +
           '</div>';
       });
@@ -385,6 +407,7 @@
       }).join(' · ') : 'ไม่ปรากฏในคำสั่งคณะกรรมการรับแก้ไขผลการเรียน') + '</div>' +
       (t.advisorRooms.length ? '<div class="small" style="margin-top:6px">ครูที่ปรึกษา ' +
         t.advisorRooms.sort(roomSort).map(function (r) { return '<a href="#/advisor/' + encodeURIComponent(r) + '">' + esc(r) + '</a>'; }).join(' · ') + '</div>' : '') +
+      '<div class="tc-contact left"><div class="k">ช่องทางติดต่อออนไลน์</div><div class="v">' + contactHtml(t) + '</div></div>' +
       '<div style="margin-top:10px">' + countChips(t.counts) + '</div>' +
       '</div>' +
       '<div style="flex:1 1 260px"><div class="grid g2">' +
@@ -392,22 +415,26 @@
       '<div class="stat"><div class="k">รายการวิชา</div><div class="v">' + t.nEntries + '</div><div class="n">' + t.subjects.length + ' รายวิชา</div></div>' +
       '</div></div></div></div></div>';
 
+    h += '<div class="card"><div class="card-head"><h2>กำหนดการสำหรับครูประจำวิชา</h2><span class="chip chip-alert">แบบออนไลน์ ตั้งแต่ 28 ก.ย. 2569</span></div><div class="card-body">';
     if (t.groups.length) {
-      h += '<div class="card"><div class="card-head"><h2>วัน เวลา และสถานที่ปฏิบัติหน้าที่</h2></div><div class="card-body"><div class="grid g2">';
+      h += '<div class="small muted" style="margin-bottom:6px">ครั้งที่ 1 ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ</div><div class="r1-list">';
       t.groups.forEach(function (k) {
-        h += '<div class="sess"><div class="lbl">' + esc(gname(k)) + ' · ครั้งที่ 1</div><div>' + sessTxt(k, 'r1') + '</div>' +
-          '<div style="height:10px"></div><div class="lbl">' + esc(gname(k)) + ' · ครั้งที่ 2</div><div>' + sessTxt(k, 'r2') + '</div></div>';
+        var g = D.groups[k], st = r1Status(k);
+        h += '<div class="r1-row' + (st === 'cancel' ? ' cancelled' : '') + '"><span class="r1-g">' + esc(gname(k)) + '</span>' +
+          '<span class="r1-w">รอบที่ ' + g.r1.round + ' · ' + esc(g.r1.day) + ' · ' + esc(g.r1.time) + '</span>' +
+          (st === 'cancel' ? '<span class="chip chip-cancel">ยกเลิก – เปลี่ยนเป็นออนไลน์</span>' : '<span class="chip chip-done">ดำเนินการแล้ว</span>') + '</div>';
       });
-      h += '</div><div class="notice info" style="margin-top:12px">ครั้งที่ 2 ให้เฉพาะครูผู้สอนที่ยังมีนักเรียนค้างแก้ไขผลการเรียนตามรายชื่อในระบบ หลังประกาศผลครั้งที่ 1 (29 กันยายน 2569) มาประจำห้อง</div></div></div>';
+      h += '</div><div style="height:14px"></div>';
     } else {
-      h += '<div class="notice warn" style="margin-top:18px">ไม่พบชื่อครูในคำสั่งคณะกรรมการรับแก้ไขผลการเรียน ที่ 239/2569 — ระบบจึงจัดสถานีให้ตามกลุ่มสาระการเรียนรู้ของรายวิชา โปรดตรวจสอบกับหัวหน้ากลุ่มสาระฯ อีกครั้ง</div>';
+      h += '<div class="notice warn" style="margin-bottom:14px">ไม่พบชื่อครูในคำสั่งคณะกรรมการรับแก้ไขผลการเรียน ที่ 239/2569 โปรดตรวจสอบกับหัวหน้ากลุ่มสาระฯ อีกครั้ง</div>';
     }
+    h += calTable() + '</div></div>';
 
     h += '<div class="card"><div class="card-head"><h2>หน้าที่ของครูประจำวิชา</h2></div><div class="card-body"><ol class="list-reset">' +
-      '<li>ตรวจสอบรายชื่อนักเรียนที่ได้ 0 / ร / มผ ในรายวิชาของตนเองจากระบบ Prot Care หลังวันประกาศผล</li>' +
-      '<li>เตรียมภาระงานหรือแบบทดสอบให้พร้อมก่อนวันปฏิบัติหน้าที่</li>' +
-      '<li>มาประจำสถานีตามวัน เวลา และสถานที่ของกลุ่มสาระฯ ตนเอง</li>' +
-      '<li>แก้ไขผลการเรียนในระบบ Prot Care ด้วยตนเอง (สถานะ “รออนุมัติ”) และส่งเอกสารให้กลุ่มงานวัดผลฯ ภายใน 16.00 น. ของวันส่งผล</li>' +
+      '<li>ตรวจสอบรายชื่อนักเรียนที่ได้ 0 / ร / มผ ในรายวิชาของตนเองจากระบบ Prot Care</li>' +
+      '<li>มอบภาระงานและรับงานจากนักเรียนผ่านช่องทางออนไลน์ของรายวิชา <strong>รับงานถึงวันพุธที่ 30 กันยายน 2569 เวลา 16.00 น.</strong></li>' +
+      '<li>แก้ไขผลการเรียนในระบบ Prot Care ด้วยตนเองให้สถานะขึ้น “รออนุมัติ” <strong>ภายในวันพฤหัสบดีที่ 1 ตุลาคม 2569 เวลา 12.00 น.</strong> · กลุ่มงานวัดผลฯ อนุมัติผลเวลา 15.30 น.</li>' +
+      '<li>เอกสารรายงานผลการแก้ไขผลการเรียนรายวิชา (เอกสารกระดาษ) ส่งภายหลังเมื่อโรงเรียนเปิดทำการตามปกติ — รอแจ้งกำหนดส่งอีกครั้ง</li>' +
       '</ol></div></div>';
 
     if (!t.subjects.length) {
@@ -423,7 +450,7 @@
       var cnt = { '0': 0, 'ร': 0, 'มส': 0, 'มผ': 0 };
       rows.forEach(function (r) { cnt[r.grade]++; });
       h += '<div class="subject-row"><div class="top">' +
-        '<div><div class="sname">' + esc(sub.name) + '</div><div class="scode">' + esc(sub.code) + ' · สถานี ' + esc(gname(sub.g)) + '</div></div>' +
+        '<div><div class="sname">' + esc(sub.name) + '</div><div class="scode">' + esc(sub.code) + '</div></div>' +
         '<div>' + countChips(cnt) + ' &nbsp; <span class="chip">ค้าง ' + rows.length + ' คน</span>' +
         ((sub.done || []).length ? ' <span class="chip chip-pass">ผ่านแล้ว ' + sub.done.length + ' คน</span>' : '') + '</div></div>';
       if (!rows.length) h += '<div class="small muted" style="margin-top:8px">ไม่มีนักเรียนค้างในรายวิชานี้แล้ว</div>';
@@ -534,47 +561,31 @@
       '<div class="stat"><div class="k">รายการ มส</div><div class="v">' + r.counts['มส'] + '</div><div class="n">ต้องเรียนซ้ำ</div></div>' +
       '</div></div></div></div>';
 
-    h += '<div class="card"><div class="card-head"><h2>หน้าที่ของครูที่ปรึกษา</h2></div><div class="card-body"><ol class="list-reset">' +
-      '<li>ตรวจสอบผลการเรียนของนักเรียนในที่ปรึกษาหลังวันประกาศผล</li>' +
-      '<li>แจ้งและกำกับติดตามให้นักเรียนไปพบครูประจำวิชาตามรอบของกลุ่มสาระฯ ที่ตนเองติด</li>' +
-      '<li>ย้ำให้นักเรียนแสดงหน้าจอ “ผลการเรียนที่ยังไม่ผ่าน” ในระบบ Prot Care แก่ครูประจำวิชา ไม่ต้องติดต่อสำนักงานวิชาการ</li>' +
-      '<li>ติดตามนักเรียนที่ยังไม่ผ่านในครั้งที่ 1 ให้เข้าร่วมกิจกรรมครั้งที่ 2 ให้ครบ</li>' +
+    h += '<div class="card"><div class="card-head"><h2>หน้าที่ของครูที่ปรึกษา</h2><span class="chip chip-alert">แบบออนไลน์ ตั้งแต่ 28 ก.ย. 2569</span></div><div class="card-body"><ol class="list-reset">' +
+      '<li>ส่งประกาศและข้อความแจ้งนักเรียน/ผู้ปกครองในกลุ่มห้องเรียน</li>' +
+      '<li>ช่วยประสานนักเรียนที่ติดต่อครูประจำวิชาไม่ได้</li>' +
+      '<li>สำรวจนักเรียนที่ได้รับผลกระทบจากน้ำท่วมหรือไม่มีอุปกรณ์ แจ้งงานวัดผลภายในอังคาร 29 ก.ย. 2569</li>' +
       '</ol></div></div>';
 
-    /* round-by-round call sheet */
-    ['r1', 'r2'].forEach(function (which) {
-      var title = which === 'r1' ? 'ใบกำกับติดตาม ครั้งที่ 1' : 'ใบกำกับติดตาม ครั้งที่ 2';
-      var byS = {};
-      list.forEach(function (s) {
-        s.items.filter(function (i) { return i.grade !== 'มส'; }).forEach(function (it) {
-          var g = D.groups[it.g]; if (!g) return;
-          var ses = g[which];
-          var place = (which === 'r2' && it.room2) ? it.room2 : ses.place;
-          var k = ses.day + '|' + ses.time + '|' + place;
-          byS[k] = byS[k] || { round: ses.round, day: ses.day, time: ses.time, place: place, rows: [] };
-          byS[k].rows.push({ s: s, it: it });
-        });
-      });
-      var keys = Object.keys(byS).sort(function (a, b) { return byS[a].day.localeCompare(byS[b].day, 'th') || byS[a].round - byS[b].round; });
-      h += '<div class="card"><div class="card-head"><h2>' + title + '</h2>' +
-        '<span class="small muted">' + (which === 'r1' ? 'ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ' : 'ณ ห้อง 122–125 อาคาร 1 · เฉพาะผู้ที่ยังไม่ผ่านหลัง 29 ก.ย.') + '</span></div><div class="card-body">';
-      if (!keys.length) h += '<div class="muted">ไม่มีนักเรียนที่ต้องเข้าร่วม</div>';
-      keys.forEach(function (k) {
-        var b = byS[k];
-        var uniq = {}; b.rows.forEach(function (x) { uniq[x.s.code] = 1; });
-        h += '<div class="sess" style="margin-bottom:12px"><div class="lbl">รอบที่ ' + b.round + ' · นักเรียน ' + Object.keys(uniq).length + ' คน · ' + b.rows.length + ' รายวิชา</div>' +
-          '<div class="d">' + esc(b.day) + ' · ' + esc(b.time) + '</div><div class="p">' + esc(b.place) + '</div>' +
-          '<div class="table-scroll" style="margin-top:8px"><table><thead><tr><th style="width:40px"></th><th>นักเรียน</th><th>รายวิชา</th><th>ผล</th><th>ครูประจำวิชา</th></tr></thead><tbody>';
-        b.rows.sort(function (x, y) { return (+x.s.no) - (+y.s.no); }).forEach(function (x) {
-          h += '<tr><td>' + avatar(stuPhoto(x.s), x.s.name, 'sm') + '</td>' +
-            '<td><a href="#/student/' + x.s.code + '">' + esc(x.s.name) + '</a><div class="small muted">เลขที่ ' + esc(x.s.no) + ' · ' + esc(x.s.code) + '</div></td>' +
-            '<td>' + esc(x.it.name) + '<div class="small muted">' + esc(x.it.code) + '</div></td>' +
-            '<td>' + gb(x.it.grade) + '</td><td>' + personT(T[x.it.t]) + '</td></tr>';
-        });
-        h += '</tbody></table></div></div>';
-      });
-      h += '</div></div>';
+    /* ใบกำกับติดตาม (ไม่แบ่งรอบ/ห้อง) */
+    var rowsA = [];
+    list.forEach(function (s) {
+      s.items.filter(function (i) { return i.grade !== 'มส'; }).forEach(function (it) { rowsA.push({ s: s, it: it }); });
     });
+    h += '<div class="card"><div class="card-head"><h2>ใบกำกับติดตาม</h2>' +
+      '<span class="small muted">นักเรียนติดต่อครูประจำวิชาทางช่องทางออนไลน์ ส่งงานภายในวันพุธที่ 30 กันยายน 2569 เวลา 16.00 น.</span></div><div class="card-body">';
+    if (!rowsA.length) h += '<div class="muted">ไม่มีนักเรียนที่ต้องติดต่อครูประจำวิชา</div>';
+    else {
+      h += '<div class="table-scroll"><table><thead><tr><th style="width:40px"></th><th>นักเรียน</th><th>รายวิชา</th><th>ผล</th><th>ครูประจำวิชา</th></tr></thead><tbody>';
+      rowsA.sort(function (x, y) { return (+x.s.no) - (+y.s.no); }).forEach(function (x) {
+        h += '<tr><td>' + avatar(stuPhoto(x.s), x.s.name, 'sm') + '</td>' +
+          '<td><a href="#/student/' + x.s.code + '">' + esc(x.s.name) + '</a><div class="small muted">เลขที่ ' + esc(x.s.no) + ' · ' + esc(x.s.code) + '</div></td>' +
+          '<td>' + esc(x.it.name) + '<div class="small muted">' + esc(x.it.code) + '</div></td>' +
+          '<td>' + gb(x.it.grade) + '</td><td>' + personT(T[x.it.t]) + '</td></tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+    h += '</div></div>';
 
     h += '<div class="card"><div class="card-head"><h2>นักเรียนในที่ปรึกษาที่ต้องแก้ผลการเรียน</h2>' +
       '<div class="no-print"><button class="btn" onclick="window.print()">พิมพ์รายชื่อ</button></div></div><div class="card-body"><div class="student-grid">';
@@ -592,74 +603,126 @@
   }
 
   /* ================= SCHEDULE ================= */
+  /* ปฏิทิน: สถานะคำนวณจากวันเวลาปัจจุบัน (เวลาไทย) */
+  var CAL_TL = [
+    { dd: '23', mm: 'ก.ย. 2569', wd: 'พุธ', t: '–', a: 'ประกาศผลการเรียน ภาคเรียนที่ 1/2569', sub: 'ผ่านระบบ Prot Care', w: 'กลุ่มงานวัดผลและประเมินผล', s: '2026-09-23T00:00', e: '2026-09-23T23:59' },
+    { dd: '24', mm: 'ก.ย. 2569', wd: 'พฤหัสบดี', t: '09.00 – 16.00 น.', a: 'แก้ไขผลการเรียน ครั้งที่ 1 รอบที่ 1 (เช้า) และรอบที่ 2 (บ่าย)', sub: 'ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ', w: 'นักเรียน / ครูประจำวิชา', s: '2026-09-24T00:00', e: '2026-09-24T23:59' },
+    { dd: '28–30', mm: 'ก.ย. 2569', wd: 'จันทร์ – พุธ', t: 'ในวันทำการ', a: 'แก้ไขผลการเรียนแบบออนไลน์ ครั้งที่ 1 (ต่อ)', sub: 'เปิดให้ทุกกลุ่มสาระการเรียนรู้ นักเรียนติดต่อครูประจำวิชา รับงานและส่งงาน ผ่านช่องทางออนไลน์ของครูประจำวิชาทุกรายวิชา', w: 'นักเรียน / ครูประจำวิชา', s: '2026-09-28T00:00', e: '2026-09-30T16:00', key: true },
+    { dd: '30', mm: 'ก.ย. 2569', wd: 'พุธ', t: '16.00 น.', a: 'ปิดรับงานจากนักเรียน', w: 'ครูประจำวิชา', s: '2026-09-30T00:00', e: '2026-09-30T16:00', key: true },
+    { dd: '1', mm: 'ต.ค. 2569', wd: 'พฤหัสบดี', t: 'ภายใน 12.00 น.', a: 'ครูแก้ไขผลการเรียนในระบบ Prot Care ให้แล้วเสร็จ', sub: 'สถานะขึ้น “รออนุมัติ”', w: 'ครูประจำวิชา', s: '2026-10-01T00:00', e: '2026-10-01T12:00' },
+    { dd: '1', mm: 'ต.ค. 2569', wd: 'พฤหัสบดี', t: '15.30 น.', a: 'อนุมัติผลการเรียนในระบบ Prot Care', w: 'กลุ่มงานวัดผลและประเมินผล', s: '2026-10-01T12:00', e: '2026-10-01T15:30' },
+    { dd: '2', mm: 'ต.ค. 2569', wd: 'ศุกร์', t: '09.00 น.', a: 'ประกาศผลการแก้ไขผลการเรียนผ่านระบบ Prot Care', sub: 'นักเรียนตรวจสอบผลในแอป PROT Student Care', w: 'กลุ่มงานวัดผลและประเมินผล', s: '2026-10-02T09:00', e: '2026-10-02T23:59', key: true },
+    { dd: 'ภาคเรียนที่ 2', mm: 'ปีการศึกษา 2569', wd: '', t: 'กำหนดวันแจ้งภายหลัง', a: 'แก้ไขผลการเรียน ครั้งที่ 2 สำหรับนักเรียนที่ยังไม่ผ่าน', w: 'นักเรียน / ครูประจำวิชา', term: true }
+  ];
+  function calState(x) {
+    if (x.term) return 'next';
+    var now = Date.now(), st = Date.parse(x.s + ':00+07:00'), en = Date.parse(x.e + ':00+07:00');
+    if (now > en) return 'done';
+    if (now >= st) return 'now';
+    return 'next';
+  }
+  var CAL_LBL = { done: 'ดำเนินการแล้ว', now: 'กำลังดำเนินการ', next: '' };
+
   function viewSchedule() {
-    var a = D.meta.activity;
-    function load(k) { var l = D.stationLoad[k] || { students: 0, entries: 0 }; return l; }
-    var h = '<h1 class="page-title">ตารางปฏิบัติหน้าที่และตารางไปพบครู</h1>' +
-      '<p class="page-lead">' + esc(a.orderNo) + ' · รอบเช้า ' + esc(a.morning) + ' · รอบบ่าย ' + esc(a.afternoon) + '</p>';
+    var h = '<div class="cal-hero">' +
+      '<div class="cal-hero-eyebrow">ปรับปฏิทินเนื่องจากสถานการณ์น้ำท่วม · มีผลตั้งแต่วันจันทร์ที่ 28 กันยายน 2569</div>' +
+      '<h1 class="cal-hero-title">ปฏิทินการแก้ไขผลการเรียน</h1>' +
+      '<div class="cal-hero-sub">ครั้งที่ 1 (ต่อ) เปลี่ยนเป็นแบบออนไลน์ทุกกลุ่มสาระการเรียนรู้ ไม่ต้องมาโรงเรียน ไม่แบ่งรอบเช้า-บ่าย และไม่กำหนดห้อง</div>' +
+      '<div class="kd-grid">' +
+      kd('ส่งงานออนไลน์ภายใน', '30', 'ก.ย.', 'พุธ · 16.00 น.', 'นักเรียน') +
+      kd('ครูแก้ผลในระบบภายใน', '1', 'ต.ค.', 'พฤหัสบดี · 12.00 น.', 'ครูประจำวิชา') +
+      kd('ประกาศผล', '2', 'ต.ค.', 'ศุกร์ · 09.00 น.', 'ผ่านระบบ Prot Care') +
+      '</div></div>';
 
-    h += '<div class="card"><div class="card-head"><h2>ครั้งที่ 1 · ' + esc(a.round1.days) + '</h2><span class="small muted">ณ ' + esc(a.round1.place) + '</span></div><div class="table-scroll">' +
-      '<table><thead><tr><th>รอบ</th><th>วัน / เวลา</th><th>กลุ่มที่ปฏิบัติหน้าที่</th><th class="num">นักเรียนที่คาดว่าจะเข้าพบ</th></tr></thead><tbody>';
-    [
-      { r: 1, day: 'พฤหัสบดีที่ 24 กันยายน 2569', time: '09.00 – 12.00 น.', gs: ['SCI', 'FL'] },
-      { r: 2, day: 'พฤหัสบดีที่ 24 กันยายน 2569', time: '13.00 – 16.00 น.', gs: ['THAI', 'ART', 'MATH', 'SUPPORT', 'ACT'] },
-      { r: 3, day: 'จันทร์ที่ 28 กันยายน 2569', time: '09.00 – 12.00 น.', gs: ['SOC', 'CAREER', 'PE'] }
-    ].forEach(function (row) {
-      var tot = row.gs.reduce(function (x, k) { return x + load(k).students; }, 0);
-      h += '<tr><td><strong>' + row.r + '</strong></td><td>' + esc(row.day) + '<div class="small muted">' + esc(row.time) + '</div></td>' +
-        '<td>' + row.gs.map(function (k) { return '<div>' + esc(gname(k)) + ' <span class="small muted">(' + load(k).students + ' คน · ' + load(k).entries + ' รายวิชา)</span></div>'; }).join('') + '</td>' +
-        '<td class="num"><strong>' + tot + '</strong></td></tr>';
+    h += '<div class="card"><div class="card-head"><h2>ลำดับเวลา</h2><span class="small muted">สถานะอัปเดตตามวันเวลาปัจจุบัน</span></div><div class="card-body"><ol class="ctl">';
+    CAL_TL.forEach(function (x) {
+      var st = calState(x);
+      h += '<li class="ctl-item is-' + st + (x.key ? ' is-key' : '') + (x.term ? ' is-term' : '') + '">' +
+        '<div class="ctl-date"><div class="ctl-dd">' + esc(x.dd) + '</div><div class="ctl-mm">' + esc(x.mm) + '</div>' +
+        (x.wd ? '<div class="ctl-wd">' + esc(x.wd) + '</div>' : '') + '</div>' +
+        '<div class="ctl-dot"></div>' +
+        '<div class="ctl-body">' +
+        '<div class="ctl-top">' + (x.t && x.t !== '–' ? '<span class="ctl-time">' + esc(x.t) + '</span>' : '') +
+        (CAL_LBL[st] ? '<span class="chip ' + (st === 'now' ? 'chip-now' : 'chip-done') + '">' + CAL_LBL[st] + '</span>' : '') + '</div>' +
+        '<div class="ctl-act">' + esc(x.a) + '</div>' +
+        (x.sub ? '<div class="ctl-sub">' + esc(x.sub) + '</div>' : '') +
+        '<div class="ctl-who">' + esc(x.w) + '</div>' +
+        '</div></li>';
     });
-    h += '<tr><td>—</td><td>จันทร์ที่ 28 กันยายน 2569<div class="small muted">13.00 – 16.00 น.</div></td>' +
-      '<td colspan="2">ครูผู้สอนทุกกลุ่มส่งผลการแก้ไขผลการเรียน ครั้งที่ 1 (ภายใน 16.00 น.) · ประกาศผล อังคารที่ 29 กันยายน 2569</td></tr>';
-    h += '</tbody></table></div></div>';
+    h += '</ol></div></div>';
 
-    h += '<div class="card"><div class="card-head"><h2>ครั้งที่ 2 · ' + esc(a.round2.days) + '</h2><span class="small muted">ณ ' + esc(a.round2.place) + '</span></div><div class="table-scroll">' +
-      '<table><thead><tr><th>รอบ</th><th>วัน / เวลา</th><th>ห้อง 122</th><th>ห้อง 123</th><th>ห้อง 124</th><th>ห้อง 125</th></tr></thead><tbody>';
-    function cell(k, extra) {
-      if (!k) return '<td class="muted">ห้องสำรอง</td>';
-      return '<td>' + esc(gname(k)) + (extra ? '<div class="small muted">' + esc(extra) + '</div>' : '') +
-        '<div class="small muted">' + load(k).students + ' คน</div></td>';
-    }
-    h += '<tr><td><strong>1</strong></td><td>พุธที่ 30 กันยายน 2569<div class="small muted">09.00 – 12.00 น.</div></td>' +
-      cell('SOC') + cell('CAREER') + cell('PE') + cell('MATH') + '</tr>';
-    h += '<tr><td><strong>2</strong></td><td>พุธที่ 30 กันยายน 2569<div class="small muted">13.00 – 16.00 น.</div></td>' +
-      cell('SCI') + '<td>' + esc(gname('FL')) + '<div class="small muted">ภาษาอังกฤษ</div></td>' +
-      '<td>' + esc(gname('FL')) + '<div class="small muted">ภาษาที่สอง (ญี่ปุ่น / จีน / ฝรั่งเศส)</div></td>' + cell('THAI') + '</tr>';
-    h += '<tr><td><strong>3</strong></td><td>พฤหัสบดีที่ 1 ตุลาคม 2569<div class="small muted">09.00 – 12.00 น.</div></td>' +
-      cell('ART') + cell('SUPPORT') + cell('ACT') + cell(null) + '</tr>';
-    h += '<tr><td>—</td><td>พฤหัสบดีที่ 1 ตุลาคม 2569<div class="small muted">13.00 – 16.00 น.</div></td>' +
-      '<td colspan="4">ครูผู้สอนทุกกลุ่มส่งผลการแก้ไขผลการเรียน ครั้งที่ 2 (ภายใน 16.00 น.) · ประกาศผล ศุกร์ที่ 2 ตุลาคม 2569</td></tr>';
-    h += '</tbody></table></div></div>';
+    h += '<div class="card"><div class="card-head"><h2>ตารางปฏิทินตามประกาศ</h2><span class="small muted">กลุ่มงานวัดผลและประเมินผล กลุ่มบริหารวิชาการ</span></div>' +
+      '<div class="card-body">' + calTable() + '</div></div>';
 
-    h += '<div class="card"><div class="card-head"><h2>สรุปตามกลุ่มสาระ</h2></div><div class="table-scroll"><table>' +
-      '<thead><tr><th>กลุ่มสาระ / กลุ่มงาน</th><th class="num">นักเรียน</th><th class="num">รายการวิชา</th><th>ครั้งที่ 1</th><th>ครั้งที่ 2</th></tr></thead><tbody>';
-    GKEYS.forEach(function (k) {
-      h += '<tr><td><strong>' + esc(gname(k)) + '</strong><div class="small muted">' + esc(D.groups[k].full) + '</div></td>' +
-        '<td class="num">' + load(k).students + '</td><td class="num">' + load(k).entries + '</td>' +
-        '<td class="small">' + sessTxt(k, 'r1') + '</td><td class="small">' + sessTxt(k, 'r2') + '</td></tr>';
-    });
-    h += '</tbody></table></div></div>';
+    h += '<div class="card"><div class="card-head"><h2>รายการที่ยกเลิกหรือเลื่อน</h2></div><div class="card-body"><div class="cx-list">' +
+      cx('จันทร์ที่ 28 กันยายน 2569 · 09.00 – 12.00 น.', 'ครั้งที่ 1 รอบที่ 3 ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ (' +
+        ['SOC', 'CAREER', 'PE'].map(gname).join(' / ') + ')', 'ยกเลิก – เปลี่ยนเป็นออนไลน์') +
+      cx('จันทร์ที่ 28 กันยายน 2569 · 13.00 – 16.00 น.', 'ครูผู้สอนส่งผลการแก้ไขผลการเรียน ครั้งที่ 1', 'ยกเลิก – ใช้กำหนดตามปฏิทินใหม่') +
+      cx('อังคารที่ 29 กันยายน 2569', 'ประกาศผลการแก้ไขผลการเรียน ครั้งที่ 1', 'ยกเลิก – รวมประกาศวันศุกร์ที่ 2 ตุลาคม 2569') +
+      cx('พุธที่ 30 กันยายน – พฤหัสบดีที่ 1 ตุลาคม 2569', 'ครั้งที่ 2 ณ ห้อง 122 123 124 และ 125 อาคาร 1', 'เลื่อนไปภาคเรียนที่ 2') +
+      '</div></div></div>';
 
-    h += '<div class="notice" style="margin-top:18px"><strong>หมายเหตุ</strong><ul class="list-reset" style="margin-top:6px">' +
-      '<li>กลุ่มสาระการเรียนรู้ภาษาต่างประเทศ ในครั้งที่ 2 แบ่งเป็น ห้อง 123 สำหรับครูผู้สอนภาษาอังกฤษ และห้อง 124 สำหรับครูผู้สอนภาษาที่สอง</li>' +
-      '<li>ครั้งที่ 2 ให้เฉพาะครูผู้สอนที่ยังมีนักเรียนค้างแก้ไขผลการเรียนหลังประกาศผลครั้งที่ 1 (29 กันยายน 2569) มาประจำห้อง · ห้อง 125 ในรอบที่ 3 เป็นห้องสำรอง</li>' +
-      '<li>ครูที่เป็นทั้งครูกลุ่มสาระการเรียนรู้ภาษาไทยและกรรมการกิจกรรมพัฒนาผู้เรียน ให้ปฏิบัติหน้าที่ทั้งสองรอบในครั้งที่ 2</li>' +
-      '<li>ตัวเลขจำนวนนักเรียนเป็นค่าประมาณจากผลการเรียน ณ วันที่ดึงข้อมูล ใช้เพื่อวางแผนจัดสถานีเท่านั้น</li>' +
-      '</ul></div>';
+    h += '<div class="card muted-card"><div class="card-head"><h2>ดำเนินการแล้ว · ครั้งที่ 1 วันที่ 24 กันยายน 2569</h2></div><div class="table-scroll">' +
+      '<table><thead><tr><th>รอบ / เวลา</th><th>กลุ่มที่ปฏิบัติหน้าที่</th></tr></thead><tbody>' +
+      '<tr><td class="nowrap">รอบที่ 1 (เช้า)<div class="small muted">09.00 – 12.00 น.</div></td>' +
+      '<td>' + ['SCI', 'FL'].map(gname).map(esc).join(' · ') + '</td></tr>' +
+      '<tr><td class="nowrap">รอบที่ 2 (บ่าย)<div class="small muted">13.00 – 16.00 น.</div></td>' +
+      '<td>' + ['THAI', 'ART', 'MATH', 'SUPPORT', 'ACT'].map(gname).map(esc).join(' · ') + '</td></tr>' +
+      '</tbody></table></div><div class="card-body small muted" style="padding-top:10px">ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ</div></div>';
     return h;
+  }
+  function kd(k, d, m, sub, who) {
+    return '<div class="kd"><div class="kd-k">' + esc(k) + '</div>' +
+      '<div class="kd-date"><span class="kd-d">' + esc(d) + '</span><span class="kd-m">' + esc(m) + '</span></div>' +
+      '<div class="kd-sub">' + esc(sub) + '</div><div class="kd-who">' + esc(who) + '</div></div>';
+  }
+  function cx(date, what, label) {
+    return '<div class="cx-row"><div class="cx-main"><div class="cx-date">' + esc(date) + '</div><div class="cx-what">' + esc(what) + '</div></div>' +
+      '<span class="chip chip-cancel">' + esc(label) + '</span></div>';
   }
 
   /* ================= GUIDE ================= */
   function viewGuide() {
     var m = D.meta;
     var h = '<h1 class="page-title">คำชี้แจงและเอกสารประกอบ</h1>' +
-      '<p class="page-lead">ประกาศโรงเรียนพรตพิทยพยัต ลงวันที่ 21 กันยายน 2569 และคำสั่งโรงเรียนพรตพิทยพยัต ที่ 239/2569</p>';
+      '<p class="page-lead">ประกาศโรงเรียนพรตพิทยพยัต ลงวันที่ 21 กันยายน 2569 คำสั่งโรงเรียนพรตพิทยพยัต ที่ 239/2569 ' +
+      'และการปรับเปลี่ยนตามนโยบายของผู้บริหารโรงเรียน เนื่องจากสถานการณ์น้ำท่วม มีผลตั้งแต่วันจันทร์ที่ 28 กันยายน 2569</p>';
 
-    h += '<div class="card"><div class="card-head"><h2>สำหรับนักเรียน</h2></div><div class="card-body grid g2">' +
-      '<img class="info-img" src="info/info-student-overview.jpg" alt="กิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว สำหรับนักเรียน">' +
-      '<img class="info-img" src="info/info-student-schedule.jpg" alt="ตารางไปพบครูประจำวิชา">' +
-      '</div></div>';
+    h += '<div class="card"><div class="card-head"><h2>การแก้ไขผลการเรียนแบบออนไลน์</h2><span class="chip chip-alert">ตั้งแต่ 28 ก.ย. 2569</span></div><div class="card-body">' +
+      '<p style="margin-top:0">ตั้งแต่วันจันทร์ที่ 28 กันยายน 2569 การแก้ไขผลการเรียน ครั้งที่ 1 (ต่อ) เปลี่ยนเป็นแบบออนไลน์ทั้งหมด ไม่ต้องมาโรงเรียน ' +
+      'ไม่แบ่งรอบเช้า-บ่าย และไม่กำหนดห้อง เปิดให้ทุกกลุ่มสาระการเรียนรู้ นักเรียนติดต่อครูประจำวิชา รับงานและส่งงานผ่านช่องทางออนไลน์ ' +
+      'ภายในวันพุธที่ 30 กันยายน 2569 เวลา 16.00 น. ประกาศผลวันศุกร์ที่ 2 ตุลาคม 2569 เวลา 09.00 น. ผ่านระบบ Prot Care ' +
+      'ส่วนการแก้ไขผลการเรียน ครั้งที่ 2 เลื่อนไปภาคเรียนที่ 2 ปีการศึกษา 2569 (กำหนดวันแจ้งภายหลัง)</p>' +
+      '<div class="grid g3 guide-cols">' +
+      '<div><h3 class="gh">สำหรับนักเรียน</h3><ol class="list-reset">' +
+      '<li>เปิดแอป Prot Care จับภาพหน้าจอ “ผลการเรียนที่ยังไม่ผ่าน”</li>' +
+      '<li>ส่งภาพให้ครูประจำวิชาทางช่องทางออนไลน์ของรายวิชา เพื่อรับภาระงาน</li>' +
+      '<li>ทำงานและส่งภายใน 30 ก.ย. 16.00 น. ติดต่อด้วยการพิมพ์ข้อความเท่านั้น</li>' +
+      '<li>ตรวจสอบผลในแอป วันศุกร์ที่ 2 ตุลาคม 2569</li></ol></div>' +
+      '<div><h3 class="gh">สำหรับครูประจำวิชา</h3><ol class="list-reset">' +
+      '<li>มอบภาระงานและรับงานผ่านช่องทางออนไลน์ของรายวิชา รับงานถึงวันพุธที่ 30 กันยายน 2569 เวลา 16.00 น.</li>' +
+      '<li>แก้ไขผลการเรียนในระบบ Prot Care ให้สถานะขึ้น “รออนุมัติ” ภายในวันพฤหัสบดีที่ 1 ตุลาคม 2569 เวลา 12.00 น.</li>' +
+      '<li>เอกสารรายงานผลการแก้ไขผลการเรียนรายวิชา ส่งภายหลังเมื่อโรงเรียนเปิดทำการตามปกติ (รอแจ้งกำหนดส่งอีกครั้ง)</li></ol></div>' +
+      '<div><h3 class="gh">สำหรับครูที่ปรึกษา</h3><ol class="list-reset">' +
+      '<li>ส่งประกาศและข้อความแจ้งนักเรียน/ผู้ปกครองในกลุ่มห้องเรียน</li>' +
+      '<li>ช่วยประสานนักเรียนที่ติดต่อครูประจำวิชาไม่ได้</li>' +
+      '<li>สำรวจนักเรียนที่ได้รับผลกระทบจากน้ำท่วมหรือไม่มีอุปกรณ์ แจ้งงานวัดผลภายในอังคาร 29 ก.ย. 2569</li></ol></div>' +
+      '</div>' +
+      '<div class="notice warn" style="margin-top:16px"><strong>ข้อควรทราบ</strong><ul class="list-reset" style="margin-top:6px">' +
+      '<li>นักเรียนที่บ้านได้รับผลกระทบจากน้ำท่วม หรือไม่มีอุปกรณ์/อินเทอร์เน็ต ให้แจ้งครูที่ปรึกษา จะได้แก้ไขในครั้งที่ 2 ภาคเรียนที่ 2 โดยไม่เสียสิทธิ์</li>' +
+      '<li>ผลการเรียน มส ไม่อยู่ในขอบข่ายของกิจกรรมนี้ ต้องเรียนซ้ำตามระเบียบของโรงเรียน</li>' +
+      '<li>ขอให้นักเรียนดูแลความปลอดภัยของตนเองและครอบครัวเป็นสำคัญ</li>' +
+      '</ul></div></div></div>';
+
+    h += '<div class="card"><div class="card-head"><h2>ประกาศและอินโฟกราฟิก ฉบับปรับปฏิทินเนื่องจากน้ำท่วม</h2></div><div class="card-body">' +
+      '<img class="info-img" src="info/info-flood-calendar.jpg" alt="แจ้งปรับเปลี่ยนปฏิทินกิจกรรมการเรียนซ่อมเสริมและสอบแก้ตัว ภาคเรียนที่ 1 ปีการศึกษา 2569 เนื่องจากสถานการณ์น้ำท่วม">' +
+      '<div class="grid g2" style="margin-top:14px">' +
+      '<img class="info-img" src="info/info-flood-student.jpg" alt="ประกาศด่วน สำหรับนักเรียน: ครั้งที่ 1 (ต่อ) เปลี่ยนเป็นออนไลน์ 28 – 30 ก.ย. 2569">' +
+      '<img class="info-img" src="info/info-flood-teacher.jpg" alt="แจ้งครูประจำวิชา: แก้ผลการเรียนออนไลน์ ครั้งที่ 1">' +
+      '</div></div></div>';
+
+    h += '<div class="card"><div class="card-head"><h2>ปฏิทินใหม่</h2></div><div class="card-body">' + calTable() + '</div></div>';
+
     h += '<div class="card"><div class="card-head"><h2>วิธีเข้าดูผลการเรียนในแอป PROT Student Care</h2></div><div class="card-body">' +
       '<div class="grid g2"><img class="info-img" src="info/info-student-care.jpg" alt="วิธีเข้าดูผลการเรียน">' +
       '<div><ol class="list-reset">' +
@@ -668,19 +731,25 @@
       '<li>ที่หน้าเมนูหลัก กดเมนู “ผลการเรียน”</li>' +
       '<li>เลือกชื่อนักเรียนของตนเอง และเลือกภาคเรียนเป็น 1/2569</li>' +
       '<li>ระบบจะแสดงผลการเรียนของภาคเรียนนั้น</li>' +
-      '</ol><div class="small muted" style="margin-top:8px">หากยังไม่ถึงกำหนดประกาศผล ระบบจะแจ้งว่า “ยังไม่ถึงเวลาประกาศผลการเรียน” · หากรายวิชาใดยังไม่ปรากฏผลการเรียน ให้สอบถามครูประจำวิชาโดยตรง</div>' +
+      '</ol><div class="small muted" style="margin-top:8px">หากรายวิชาใดยังไม่ปรากฏผลการเรียน ให้สอบถามครูประจำวิชาโดยตรงทางช่องทางออนไลน์</div>' +
       '</div></div></div></div>';
-    h += '<div class="card"><div class="card-head"><h2>สำหรับครู</h2></div><div class="card-body grid g2">' +
-      '<img class="info-img" src="info/info-teacher-overview.jpg" alt="แจ้งครู กิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว">' +
-      '<img class="info-img" src="info/info-teacher-schedule.jpg" alt="ตารางปฏิบัติหน้าที่">' +
-      '</div></div>';
+
+    h += '<details class="card old-docs"><summary>อินโฟกราฟิกฉบับเดิม (ก่อนวันที่ 28 กันยายน 2569)</summary><div class="card-body">' +
+      '<div class="notice warn" style="margin-bottom:12px">กำหนดการ รอบ และห้องในภาพเหล่านี้ <strong>ยกเลิกแล้ว</strong> ตั้งแต่วันจันทร์ที่ 28 กันยายน 2569 ให้ยึดปฏิทินใหม่ด้านบน</div>' +
+      '<div class="grid g2">' +
+      '<img class="info-img" src="info/info-student-overview.jpg" alt="ฉบับเดิม: กิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว สำหรับนักเรียน">' +
+      '<img class="info-img" src="info/info-student-schedule.jpg" alt="ฉบับเดิม: ตารางไปพบครูประจำวิชา">' +
+      '<img class="info-img" src="info/info-teacher-overview.jpg" alt="ฉบับเดิม: แจ้งครู">' +
+      '<img class="info-img" src="info/info-teacher-schedule.jpg" alt="ฉบับเดิม: ตารางปฏิบัติหน้าที่">' +
+      '</div></div></details>';
 
     h += '<div class="card"><div class="card-head"><h2>ที่มาของข้อมูลและการตรวจสอบ</h2></div><div class="card-body">' +
       '<h3 style="margin:0 0 6px; font-size:.98rem">ข้อมูลในเว็บไซต์นี้นำมาจาก</h3><ul class="list-reset">' +
       m.sources.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') +
+      '<li>ปฏิทินใหม่และการเปลี่ยนเป็นแบบออนไลน์ — นโยบายของผู้บริหารโรงเรียน เนื่องจากสถานการณ์น้ำท่วม มีผลตั้งแต่วันจันทร์ที่ 28 กันยายน 2569</li>' +
+      '<li>ช่องทางติดต่อออนไลน์ของครูประจำวิชา — ข้อมูลจากกลุ่มสาระการเรียนรู้</li>' +
       '</ul><h3 style="margin:16px 0 6px; font-size:.98rem">การตรวจสอบความถูกต้อง</h3><ul class="list-reset">' +
       m.verification.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') +
-      '<li>การจัดสถานีของแต่ละรายวิชา อ้างอิงกลุ่มที่ครูผู้สอนปฏิบัติหน้าที่ตามคำสั่งที่ 239/2569 กรณีรายวิชาอยู่คนละกลุ่มกับครูผู้สอน ระบบจะแสดงหมายเหตุกำกับไว้</li>' +
       '</ul>' +
       '<div class="notice info" style="margin-top:12px"><strong>ข้อมูลผลการเรียนชุดนี้เป็นสถานะ ณ ' + esc(m.asOf) + '</strong>' +
       ' — เป็นสถานะผลการเรียน ณ เวลาดังกล่าว หากมีการแก้ไขผลการเรียนในระบบหลังเวลานี้ ให้ยึดข้อมูลในระบบเป็นหลัก ' +
