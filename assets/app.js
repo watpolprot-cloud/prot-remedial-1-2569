@@ -224,7 +224,7 @@
   }
   function contactHtml(t) {
     var c = contactOf(t);
-    return c ? linkify(c) : '<span class="muted">รอข้อมูลจากกลุ่มสาระการเรียนรู้</span>';
+    return c ? linkify(c) : '<span class="cc-def"><span>ช่องทางออนไลน์เดิม</span> <span>ที่ใช้ติดต่อครู</span> <span>ตลอดภาคเรียน</span></span>';
   }
 
   /* ================= STUDENTS ================= */
@@ -364,7 +364,7 @@
             var i = n.indexOf(' ');
             return i > 0 ? '<span>' + esc(n.slice(0, i)) + '</span><span>' + esc(n.slice(i + 1)) + '</span>' : '<span>' + esc(n) + '</span>';
           })(String(t.name).replace(/\s+/g, ' ').trim()) + '</div>' +
-          '<div class="tc-contact"><div class="k">ช่องทางติดต่อออนไลน์</div><div class="v">' + contactHtml(t) + '</div></div>' +
+          '<div class="tc-contact"><div class="k">ช่องทางติดต่อ</div><div class="v">' + contactHtml(t) + '</div></div>' +
           '<a class="btn btn-sm btn-open tc-btn" href="#/teacher/' + t.id + '">ดูรายละเอียด</a>' +
           '</div>';
       });
@@ -407,7 +407,7 @@
       }).join(' · ') : 'ไม่ปรากฏในคำสั่งคณะกรรมการรับแก้ไขผลการเรียน') + '</div>' +
       (t.advisorRooms.length ? '<div class="small" style="margin-top:6px">ครูที่ปรึกษา ' +
         t.advisorRooms.sort(roomSort).map(function (r) { return '<a href="#/advisor/' + encodeURIComponent(r) + '">' + esc(r) + '</a>'; }).join(' · ') + '</div>' : '') +
-      '<div class="tc-contact left"><div class="k">ช่องทางติดต่อออนไลน์</div><div class="v">' + contactHtml(t) + '</div></div>' +
+      '<div class="tc-contact left"><div class="k">ช่องทางติดต่อ</div><div class="v">' + contactHtml(t) + '</div></div>' +
       '<div style="margin-top:10px">' + countChips(t.counts) + '</div>' +
       '</div>' +
       '<div style="flex:1 1 260px"><div class="grid g2">' +
@@ -564,7 +564,6 @@
     h += '<div class="card"><div class="card-head"><h2>หน้าที่ของครูที่ปรึกษา</h2><span class="chip chip-alert">แบบออนไลน์ ตั้งแต่ 28 ก.ย. 2569</span></div><div class="card-body"><ol class="list-reset">' +
       '<li>ส่งประกาศและข้อความแจ้งนักเรียน/ผู้ปกครองในกลุ่มห้องเรียน</li>' +
       '<li>ช่วยประสานนักเรียนที่ติดต่อครูประจำวิชาไม่ได้</li>' +
-      '<li>สำรวจนักเรียนที่ได้รับผลกระทบจากน้ำท่วมหรือไม่มีอุปกรณ์ แจ้งงานวัดผลภายในอังคาร 29 ก.ย. 2569</li>' +
       '</ol></div></div>';
 
     /* ใบกำกับติดตาม (ไม่แบ่งรอบ/ห้อง) */
@@ -706,7 +705,7 @@
       '<div><h3 class="gh">สำหรับครูที่ปรึกษา</h3><ol class="list-reset">' +
       '<li>ส่งประกาศและข้อความแจ้งนักเรียน/ผู้ปกครองในกลุ่มห้องเรียน</li>' +
       '<li>ช่วยประสานนักเรียนที่ติดต่อครูประจำวิชาไม่ได้</li>' +
-      '<li>สำรวจนักเรียนที่ได้รับผลกระทบจากน้ำท่วมหรือไม่มีอุปกรณ์ แจ้งงานวัดผลภายในอังคาร 29 ก.ย. 2569</li></ol></div>' +
+      '</ol></div>' +
       '</div>' +
       '<div class="notice warn" style="margin-top:16px"><strong>ข้อควรทราบ</strong><ul class="list-reset" style="margin-top:6px">' +
       '<li>นักเรียนที่บ้านได้รับผลกระทบจากน้ำท่วม หรือไม่มีอุปกรณ์/อินเทอร์เน็ต ให้แจ้งครูที่ปรึกษา จะได้แก้ไขในครั้งที่ 2 ภาคเรียนที่ 2 โดยไม่เสียสิทธิ์</li>' +

@@ -395,3 +395,5 @@ details.old-docs > summary{cursor:pointer; padding:14px 18px; font-weight:600; c
   .ctl-body{padding:10px 12px}
 }
 @media print{.cal-hero{background:none; color:var(--text); border:1px solid #bbb} .cal-hero-sub,.cal-hero-eyebrow{color:var(--text)}}
+.cc-def > span{white-space:nowrap}
+.tc-contact:not(.left) .cc-def > span{display:block}
