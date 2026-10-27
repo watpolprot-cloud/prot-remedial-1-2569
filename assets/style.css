@@ -295,7 +295,7 @@ td.act{text-align:right; white-space:nowrap; width:1%}
   .cal tr{border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:10px; background:#fff}
   .cal td{border:0; padding:2px 0}
   .cal .cal-d{white-space:normal}
-  .cal .cal-t{color:#8a1515; font-weight:600; font-size:.9rem}
+  .cal .cal-t{color:#8a1515; font-weight:600; font-size:.9rem; white-space:normal}
   .cal .cal-w{color:var(--muted); font-size:.86rem}
 }
 
