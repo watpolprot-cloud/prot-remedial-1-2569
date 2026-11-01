@@ -1,0 +1,313 @@
+/* เว็บสรุปปิดงานแก้ไขผลการเรียน ครั้งที่ 1 และ 2 ภาคเรียนที่ 1/2569 · ข้อมูลจาก data/final.js (window.PROTF) */
+(function () {
+  'use strict';
+  var D = window.PROTF;
+  var S = D.stats;
+  var app = document.getElementById('app');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function n(x) { return Number(x).toLocaleString('en-US'); }
+  function pct(a, b) { return b ? (a * 100 / b).toFixed(2) : '0.00'; }
+  function split(p1, p2, total, cls) {
+    var a = total ? p1 * 100 / total : 0, b = total ? p2 * 100 / total : 0;
+    return '<div class="split ' + (cls || '') + '" title="ครั้งที่ 1 ' + p1 + ' · ครั้งที่ 2 ' + p2 + ' · ยังไม่ผ่าน ' + (total - p1 - p2) + '">' +
+      '<span class="s1" style="width:' + a + '%"></span><span class="s2" style="width:' + b + '%"></span></div>';
+  }
+  var LEGEND = '<div class="legend"><span><i class="l1"></i>ผ่านในครั้งที่ 1</span><span><i class="l2"></i>ผ่านในครั้งที่ 2</span><span><i class="l3"></i>ยังไม่ผ่าน</span></div>';
+  function title(t, lead) {
+    return '<h1 class="page-title">' + t + '</h1>' + (lead ? '<p class="page-lead">' + lead + '</p>' : '');
+  }
+  function sec(t) { return '<h2 class="section-title">' + t + '</h2>'; }
+  function card(head, body, extra) {
+    return '<div class="card"' + (extra || '') + '>' + (head ? '<div class="card-head"><h2>' + head + '</h2></div>' : '') +
+      '<div class="card-body">' + body + '</div></div>';
+  }
+
+  /* ---------------- สรุปผล ---------------- */
+  function pageSummary() {
+    var h = title('สรุปผลการแก้ไขผลการเรียน ภาคเรียนที่ 1/2569',
+      'ผลการเรียน 0 / ร / มผ ที่แก้ไขในครั้งที่ 1 (24 – 30 ก.ย. 2569) และครั้งที่ 2 (28 – 30 ต.ค. 2569) · ร้อยละรวมคิดจากยอดก่อนแก้ครั้งที่ 1');
+
+    h += '<div class="grid g4">' +
+      '<div class="stat dark"><div class="k">รายการที่แก้ผ่านรวม 2 ครั้ง</div><div class="v">' + n(S.r1pass + S.r2pass) + ' <small>/ ' + n(S.total) + '</small></div><div class="n">ร้อยละ ' + pct(S.r1pass + S.r2pass, S.total) + '</div></div>' +
+      '<div class="stat"><div class="k">นักเรียนผ่านครบทุกรายการ</div><div class="v">' + n(S.allfull) + ' <small>/ ' + n(S.students) + ' คน</small></div><div class="n">ร้อยละ ' + pct(S.allfull, S.students) + '</div></div>' +
+      '<div class="stat"><div class="k">รายการที่ยังไม่ผ่านหลังแก้ 2 ครั้ง</div><div class="v">' + n(S.left) + '</div><div class="n">ร้อยละ ' + pct(S.left, S.total) + ' · นักเรียน ' + n(S.students - S.allfull) + ' คน</div></div>' +
+      '<div class="stat accent"><div class="k">ผล มส (ไม่อยู่ในขอบข่าย)</div><div class="v">343</div><div class="n">รายการ · รอรอบเรียนซ้ำ ครั้งที่ 2/2569</div></div>' +
+      '</div>';
+
+    h += '<div class="card" style="margin-top:18px"><div class="card-body">' +
+      '<div class="small muted" style="margin-bottom:6px">สัดส่วนผลการแก้ไขทั้งหมด ' + n(S.total) + ' รายการ</div>' +
+      split(S.r1pass, S.r2pass, S.total, 'big-split') + LEGEND + '</div></div>';
+
+    h += sec('เปรียบเทียบครั้งที่ 1 กับครั้งที่ 2');
+    h += card('', '<div class="table-scroll"><table><thead><tr><th>รายการ</th><th class="num">ครั้งที่ 1</th><th class="num">ครั้งที่ 2</th><th class="num">รวม 2 ครั้ง</th></tr></thead><tbody>' +
+      '<tr><td>ช่วงดำเนินการ</td><td class="num">24 – 30 ก.ย. 2569</td><td class="num">28 – 30 ต.ค. 2569</td><td class="num">–</td></tr>' +
+      '<tr><td>รายการที่เข้าแก้</td><td class="num">' + n(S.total) + '</td><td class="num">' + n(S.r2in) + '</td><td class="num">' + n(S.total) + '</td></tr>' +
+      '<tr><td>รายการแก้ผ่าน</td><td class="num">' + n(S.r1pass) + '</td><td class="num">' + n(S.r2pass) + '</td><td class="num">' + n(S.r1pass + S.r2pass) + '</td></tr>' +
+      '<tr><td>ร้อยละรายการแก้ผ่าน</td><td class="num">' + pct(S.r1pass, S.total) + '</td><td class="num">' + pct(S.r2pass, S.r2in) + '</td><td class="num">' + pct(S.r1pass + S.r2pass, S.total) + '</td></tr>' +
+      '<tr><td>นักเรียนที่เข้าแก้ (คน)</td><td class="num">' + n(S.students) + '</td><td class="num">' + n(S.r2students) + '</td><td class="num">' + n(S.students) + '</td></tr>' +
+      '<tr><td>นักเรียนแก้ผ่านอย่างน้อย 1 รายการ (คน)</td><td class="num">–</td><td class="num">' + n(S.r2any) + '</td><td class="num">–</td></tr>' +
+      '<tr><td>นักเรียนผ่านครบ (คน)</td><td class="num">' + n(S.r1full) + '</td><td class="num">' + n(S.r2full) + '</td><td class="num">' + n(S.allfull) + '</td></tr>' +
+      '<tr><td>ร้อยละนักเรียนผ่านครบ</td><td class="num">' + pct(S.r1full, S.students) + '</td><td class="num">' + pct(S.r2full, S.r2students) + '</td><td class="num">' + pct(S.allfull, S.students) + '</td></tr>' +
+      '</tbody></table></div><p class="small muted" style="margin:10px 0 0">ร้อยละของครั้งที่ 2 คิดจากยอดที่ยังค้างหลังครั้งที่ 1 · ร้อยละรวมคิดจากยอดก่อนแก้ครั้งที่ 1</p>');
+
+    h += sec('แยกตามผลการเรียนเดิม (รายการ)');
+    h += breakdown(D.byOrig, ['0', 'ร', 'มผ'], function (k) { return k === 'มผ' ? 'มผ (กิจกรรม)' : k; }, 'ผลเดิม');
+    h += '<p class="small muted" style="margin:8px 0 0">นับตามผลก่อนเข้าแก้ครั้งที่ 2 · มี 2 รายการที่ผลเดิมตามประกาศผล 23 ก.ย. 2569 เป็น ร แล้วเปลี่ยนเป็น 0 ก่อนการแก้ครั้งที่ 2 หากนับตามผลวันที่ 23 ก.ย. จะเป็น 0 = 447 รายการ และ ร = 1,102 รายการ</p>';
+
+    h += sec('แยกตามระดับชั้น (รายการ)');
+    h += breakdown(D.byLevel, ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'], null, 'ชั้น');
+
+    h += sec('นักเรียนที่ยังมีรายการค้าง แยกตามระดับชั้น (คน)');
+    var L = D.stuLevel, lv = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'], t = { n: 0, after1: 0, after2: 0, full: 0 };
+    var rows = lv.map(function (k) {
+      var e = L[k]; ['n', 'after1', 'after2', 'full'].forEach(function (f) { t[f] += e[f]; });
+      return '<tr><td>' + k + '</td><td class="num">' + n(e.n) + '</td><td class="num">' + n(e.after1) + '</td><td class="num">' + n(e.after2) + '</td><td class="num">' + n(e.full) + '</td><td class="num">' + pct(e.full, e.n) + '</td></tr>';
+    }).join('');
+    h += card('', '<div class="table-scroll"><table><thead><tr><th>ชั้น</th><th class="num">ก่อนแก้</th><th class="num">หลังครั้งที่ 1</th><th class="num">หลังครั้งที่ 2</th><th class="num">ผ่านครบรวม</th><th class="num">ร้อยละผ่านครบ</th></tr></thead><tbody>' + rows +
+      '<tr class="total"><td>รวม</td><td class="num">' + n(t.n) + '</td><td class="num">' + n(t.after1) + '</td><td class="num">' + n(t.after2) + '</td><td class="num">' + n(t.full) + '</td><td class="num">' + pct(t.full, t.n) + '</td></tr></tbody></table></div>');
+
+    h += sec('แยกตามกลุ่มสาระการเรียนรู้ (รายการ)');
+    var gk = Object.keys(D.byGroup).sort(function (a, b) { return D.byGroup[b].n - D.byGroup[a].n; });
+    h += breakdown(D.byGroup, gk, null, 'กลุ่มสาระการเรียนรู้');
+
+    h += sec('ผลการเรียนที่ได้หลังแก้');
+    var order = ['ผ', '1', '1.5', '2', '2.5', '3', '3.5', '4'];
+    var g1 = D.r1grades, g2 = D.r2grades;
+    h += card('', '<div class="table-scroll"><table><thead><tr><th>ผลการเรียนใหม่</th><th class="num">ครั้งที่ 1</th><th class="num">ครั้งที่ 2</th><th class="num">รวม</th></tr></thead><tbody>' +
+      order.map(function (g) {
+        var a = g1[g] || 0, b = g2[g] || 0;
+        return '<tr><td>' + (g === 'ผ' ? 'ผ (กิจกรรม)' : g) + '</td><td class="num">' + n(a) + '</td><td class="num">' + n(b) + '</td><td class="num">' + n(a + b) + '</td></tr>';
+      }).join('') +
+      '<tr class="total"><td>รวม</td><td class="num">' + n(S.r1pass) + '</td><td class="num">' + n(S.r2pass) + '</td><td class="num">' + n(S.r1pass + S.r2pass) + '</td></tr></tbody></table></div>' +
+      '<p class="small muted" style="margin:10px 0 0">ผลการเรียนเดิม 0 บันทึกเป็น 1 · ผลเดิม ร บันทึกตามคะแนนจริง · ผลเดิม มผ บันทึกเป็น ผ</p>');
+
+    h += sec('การตรวจสอบความถูกต้องก่อนประกาศผลครั้งที่ 2');
+    h += '<div class="grid g2">' +
+      card('ยืนยันผลกับครูประจำวิชาทาง LINE (30 ต.ค. – 1 พ.ย. 2569)',
+        '<ul class="note-list">' +
+        '<li>กลุ่มงานวัดผลและประเมินผลส่งรายการผลที่บันทึกในระบบ SGS ให้ครูประจำวิชาตรวจและยืนยันทาง LINE เป็นรายบุคคลก่อนประกาศผล</li>' +
+        '<li>ครูที่ไม่มีนักเรียนแก้ผ่านได้รับแจ้งเพื่อยืนยันว่านักเรียนคงผลเดิม</li>' +
+        '<li>รายการที่ครูแจ้งขอแก้เพิ่มเติม ได้แก้ไขในระบบ SGS และตรวจซ้ำก่อนประกาศผล</li>' +
+        '</ul>') +
+      card('ตรวจทวนข้อมูลในระบบ (1 พ.ย. 2569)',
+        '<ul class="note-list">' +
+        '<li>ตรวจรายการที่แก้ในระบบ SGS ทุกรายการ (ไม่สุ่ม) ตรงกับที่ครูแจ้ง 207/207 รายการ</li>' +
+        '<li>ปรับระบบ Prot CARE ให้ตรงกับ SGS และเทียบ ต.2ก ครบ 84 ห้อง 3,084 คน 63,243 ช่องเกรด ตรงกันทั้งหมด</li>' +
+        '<li>คงค้างในภาคเรียนที่ 1/2569 หลังแก้ครั้งที่ 2: 0 = 316 · ร = 652 · มผ = 286 · มส = 343 (มส ไม่อยู่ในรอบแก้)</li>' +
+        '<li>ข้อมูลบนเว็บไซต์นี้ตรวจเทียบกับ ต.2ก ระบบ SGS ครบ 84 ห้อง ตรงกันทุกรายการ (ผลหลังแก้ 804 รายการ และรายการคงค้าง 1,254 รายการ)</li>' +
+        '</ul>') +
+      '</div>';
+
+    h += sec('หมายเหตุของข้อมูล');
+    h += card('', '<ul class="note-list">' +
+      '<li>ครั้งที่ 1: ' + esc(D.meta.r1asOf) + ' · ครั้งที่ 2: ' + esc(D.meta.asOf) + '</li>' +
+      '<li>ยอดแก้ผ่านครั้งที่ 2 จำนวน 211 รายการ รวม 4 รายการที่แก้ในระบบ SGS แล้วและอยู่ระหว่างตรวจยืนยันกับเอกสาร</li>' +
+      '<li>รายการของครู 2 ท่าน (12 รายการ) ที่ยังไม่ได้ส่งผลในวันจัดทำสถิติ นับเป็นคงผลเดิม</li>' +
+      '<li>ผลการเรียน มส ไม่อยู่ในขอบข่ายการแก้ไขผลการเรียนนี้ ให้ดำเนินการในรอบเรียนซ้ำ ครั้งที่ 2/2569</li>' +
+      '<li>รายการที่ยังไม่ผ่านหลังแก้ 2 ครั้ง โรงเรียนดำเนินการตามระเบียบโรงเรียนพรตพิทยพยัตว่าด้วยการวัดและประเมินผลการเรียน</li>' +
+      '</ul>');
+    return h;
+  }
+
+  function breakdown(obj, keys, label, head) {
+    var t = { n: 0, p1: 0, p2: 0 };
+    var rows = keys.map(function (k) {
+      var e = obj[k]; t.n += e.n; t.p1 += e.p1; t.p2 += e.p2;
+      return '<tr><td>' + esc(label ? label(k) : k) + '</td><td class="num">' + n(e.n) + '</td><td class="num">' + n(e.p1) + '</td><td class="num">' + n(e.n - e.p1) + '</td><td class="num">' + n(e.p2) + '</td><td class="num">' + pct(e.p2, e.n - e.p1) + '</td><td class="num">' + n(e.p1 + e.p2) + '</td><td class="num">' + pct(e.p1 + e.p2, e.n) + '</td><td class="num">' + n(e.n - e.p1 - e.p2) + '</td><td class="bar">' + split(e.p1, e.p2, e.n) + '</td></tr>';
+    }).join('');
+    return card('', '<div class="table-scroll"><table><thead><tr><th>' + head + '</th><th class="num">ก่อนแก้</th><th class="num">ผ่านครั้งที่ 1</th><th class="num">เข้าแก้ครั้งที่ 2</th><th class="num">ผ่านครั้งที่ 2</th><th class="num">ร้อยละครั้งที่ 2</th><th class="num">ผ่านรวม</th><th class="num">ร้อยละรวม</th><th class="num">คงเหลือ</th><th>สัดส่วน</th></tr></thead><tbody>' + rows +
+      '<tr class="total"><td>รวม</td><td class="num">' + n(t.n) + '</td><td class="num">' + n(t.p1) + '</td><td class="num">' + n(t.n - t.p1) + '</td><td class="num">' + n(t.p2) + '</td><td class="num">' + pct(t.p2, t.n - t.p1) + '</td><td class="num">' + n(t.p1 + t.p2) + '</td><td class="num">' + pct(t.p1 + t.p2, t.n) + '</td><td class="num">' + n(t.n - t.p1 - t.p2) + '</td><td class="bar">' + split(t.p1, t.p2, t.n) + '</td></tr>' +
+      '</tbody></table></div>' + LEGEND);
+  }
+
+  /* ---------------- ตรวจผลรายบุคคล ---------------- */
+  function pageLookup(id) {
+    var h = title('ตรวจผลการแก้ไขผลการเรียนรายบุคคล',
+      'กรอกเลขประจำตัวนักเรียน 5 หลัก เพื่อดูว่ารายวิชาใดแก้ผ่านในครั้งที่ 1 หรือครั้งที่ 2 และรายวิชาใดยังไม่ผ่าน · แสดงเฉพาะรายวิชาที่เคยได้ 0 / ร / มผ ในภาคเรียนที่ 1/2569');
+    h += '<div class="card lookup-box"><div class="card-body"><form id="lk" class="row" autocomplete="off">' +
+      '<input id="lkId" class="input" inputmode="numeric" maxlength="5" placeholder="เช่น 4xxxx" value="' + esc(id || '') + '">' +
+      '<button class="btn btn-primary" type="submit">ตรวจผล</button></form>' +
+      '<p class="small muted" style="margin:10px 0 0">ผลการเรียนที่เป็นทางการให้ตรวจในระบบ SGS (เลขประจำตัวนักเรียน + เลขประจำตัวประชาชน 13 หลัก) หากผลในระบบไม่ตรงกับใบที่ครูลงนาม ให้นำใบนั้นมาติดต่อห้องสำนักงานวิชาการ</p></div></div>';
+    if (id) h += '<div style="margin-top:18px">' + lookupResult(id) + '</div>';
+    return h;
+  }
+
+  function lookupResult(id) {
+    if (!/^\d{5}$/.test(id)) return '<div class="notice warn">กรุณากรอกเลขประจำตัวนักเรียนให้ครบ 5 หลัก</div>';
+    var s = D.students[id];
+    if (!s) return '<div class="notice info">ไม่พบรายการ 0 / ร / มผ ของเลขประจำตัว ' + esc(id) + ' ในการแก้ไขผลการเรียน ภาคเรียนที่ 1/2569 · ผล มส ไม่อยู่ในขอบข่าย ตรวจสอบได้ในระบบ SGS</div>';
+    var items = s[1], p1 = 0, p2 = 0;
+    var rows = items.map(function (it) {
+      // [รหัสวิชา, ชื่อวิชา, ผลเดิม, ผลครั้งที่ 1, ผลครั้งที่ 2, ครูผู้สอน, กลุ่มสาระ]
+      var st;
+      if (it[3]) { p1++; st = '<span class="st st-ok1">ผ่านในครั้งที่ 1</span>'; }
+      else if (it[4]) { p2++; st = '<span class="st st-ok2">ผ่านในครั้งที่ 2</span>'; }
+      else st = '<span class="st st-left">ยังไม่ผ่าน</span>';
+      var g = it[3] || it[4];
+      return '<tr><td class="subj" data-l="รายวิชา">' + esc(it[0]) + ' ' + esc(it[1]) + '<div class="small muted">' + esc(it[5]) + '</div></td>' +
+        '<td class="num" data-l="ผลเดิม">' + esc(it[2]) + '</td>' +
+        '<td class="num" data-l="ผลหลังแก้">' + (g && g !== 'ผ่าน' ? '<span class="gnew">' + esc(g) + '</span>' : (g ? 'ผ่าน' : '–')) + '</td>' +
+        '<td data-l="สถานะ">' + st + '</td></tr>';
+    }).join('');
+    var left = items.length - p1 - p2;
+    return '<div class="card"><div class="card-head res-head"><div><div class="small muted">เลขประจำตัวนักเรียน</div><div class="id">' + esc(id) + '</div></div>' +
+      '<div class="small">ห้อง (ภาคเรียนที่ 1/2569) ' + esc(s[0]) + ' · ' + items.length + ' รายวิชา · ผ่านครั้งที่ 1 ' + p1 + ' · ผ่านครั้งที่ 2 ' + p2 + ' · ยังไม่ผ่าน ' + left + '</div></div>' +
+      '<div class="card-body"><div class="table-scroll"><table class="resp"><thead><tr><th>รายวิชา / ครูผู้สอน</th><th class="num">ผลเดิม</th><th class="num">ผลหลังแก้</th><th>สถานะ</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      (left ? '<div class="notice" style="margin-top:12px">รายวิชาที่ยังไม่ผ่านหลังแก้ไข 2 ครั้ง โรงเรียนดำเนินการตามระเบียบโรงเรียนพรตพิทยพยัตว่าด้วยการวัดและประเมินผลการเรียน ติดตามประกาศจากกลุ่มงานวัดผลและประเมินผล</div>' :
+        '<div class="notice info" style="margin-top:12px">แก้ไขผลการเรียน 0 / ร / มผ ผ่านครบทุกรายวิชาแล้ว</div>') +
+      '</div></div>';
+  }
+
+  /* ---------------- ลำดับการดำเนินงาน ---------------- */
+  var TL1 = [
+    ['21 ก.ย. 2569', 'ออกคำสั่งโรงเรียนพรตพิทยพยัต ที่ 239/2569 และประกาศโรงเรียน เรื่อง การจัดกิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว ครั้งที่ 1 และครั้งที่ 2', 'โรงเรียน'],
+    ['พ. 23 ก.ย. 2569', 'ประกาศผลการเรียน ภาคเรียนที่ 1/2569 ทางระบบ Prot Care', 'กลุ่มงานวัดผลและประเมินผล'],
+    ['พฤ. 24 ก.ย. 2569', 'แก้ไขผลการเรียน ครั้งที่ 1 รอบเช้าและรอบบ่าย ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ', 'นักเรียน / ครูประจำวิชา'],
+    ['จ. 28 – พ. 30 ก.ย. 2569', 'ปรับเป็นการแก้ไขผลการเรียนแบบออนไลน์ทุกกลุ่มสาระ เนื่องจากสถานการณ์อุทกภัยในพื้นที่เขตลาดกระบัง', 'นักเรียน / ครูประจำวิชา'],
+    ['อ. 29 ก.ย. 2569', 'ประกาศโรงเรียน เรื่อง การรับแก้ไขผลการเรียนแบบออนไลน์ ให้ครูรับงานจากนักเรียนทุกช่องทาง (LINE, Google Classroom, อีเมล, โทรศัพท์)', 'โรงเรียน'],
+    ['พ. 30 ก.ย. 2569 · 16.00 น.', 'ปิดรับงานจากนักเรียน', 'ครูประจำวิชา'],
+    ['พฤ. 1 ต.ค. 2569', 'ครูแก้ไขผลการเรียนในระบบ Prot Care ภายใน 12.00 น. และกลุ่มงานวัดผลฯ อนุมัติผล 15.30 น.', 'ครูประจำวิชา / กลุ่มงานวัดผลและประเมินผล'],
+    ['ศ. 2 ต.ค. 2569 · 09.00 น.', 'ประกาศผลการแก้ไขผลการเรียน ครั้งที่ 1 ทางระบบ Prot Care · แก้ผ่าน 594 รายการ', 'กลุ่มงานวัดผลและประเมินผล', true],
+    ['ภาคเรียนที่ 2/2569', 'การแก้ไขผลการเรียน ครั้งที่ 2 (เดิมกำหนด 30 ก.ย. – 1 ต.ค. 2569) เลื่อนไปภาคเรียนที่ 2 เนื่องจากสถานการณ์อุทกภัย', 'โรงเรียน']
+  ];
+  var TL2 = [
+    ['อ. 20 ต.ค. 2569', 'ตรวจผลการเรียนที่ยังไม่ผ่านจากระบบ Prot CARE ครบ 84 ห้อง ได้รายชื่อมีสิทธิ์แก้ครั้งที่ 2 จำนวน 1,465 รายการ', 'กลุ่มงานวัดผลและประเมินผล'],
+    ['พฤ. 22 ต.ค. 2569', 'ออกคำสั่งโรงเรียนพรตพิทยพยัต ที่ 254/2569 แต่งตั้งคณะกรรมการดำเนินการแก้ไขผลการเรียน ครั้งที่ 2', 'โรงเรียน'],
+    ['จ. 26 ต.ค. 2569', 'เปิดภาคเรียนที่ 2/2569 · ประกาศโรงเรียน เรื่อง การแก้ไขผลการเรียน ครั้งที่ 2 · แจ้งครูที่ปรึกษาทาง LINE ให้แจ้งนักเรียนเตรียมตัว', 'โรงเรียน / ครูที่ปรึกษา'],
+    ['พ. 28 ต.ค. 2569 · ช่วงเข้าแถว', 'ครูที่ปรึกษารับใบแสดงรายวิชาที่ต้องแก้ไขผลการเรียน แล้วมอบให้นักเรียน · หัวหน้ากลุ่มสาระรับเอกสารบันทึกผลแจกครูประจำวิชา', 'ครูที่ปรึกษา / หัวหน้ากลุ่มสาระ'],
+    ['พ. 28 – ศ. 30 ต.ค. 2569', 'นักเรียนติดต่อครูประจำวิชาด้วยตนเอง ทั้งในเวลาและนอกเวลาเรียน', 'นักเรียน / ครูประจำวิชา'],
+    ['ศ. 30 ต.ค. 2569', 'นักเรียนส่งงานก่อน 15.10 น. · ครูส่งเอกสารบันทึกผลที่ห้องสำนักงานวิชาการก่อน 16.00 น.', 'นักเรียน / ครูประจำวิชา'],
+    ['30 ต.ค. – 1 พ.ย. 2569', 'กลุ่มงานวัดผลฯ แก้ไขผลการเรียนในระบบ SGS ตามเอกสารบันทึกผล และยืนยันผลกับครูประจำวิชาทาง LINE รายบุคคล', 'กลุ่มงานวัดผลและประเมินผล'],
+    ['ส. 31 ต.ค. 2569', 'ปรับผลการเรียนในระบบ Prot CARE ให้ตรงกับระบบ SGS', 'กลุ่มงานวัดผลและประเมินผล'],
+    ['อา. 1 พ.ย. 2569', 'ตรวจทวนครั้งสุดท้าย: รายการที่แก้ตรง 207/207 · ต.2ก SGS ตรง Prot CARE ครบ 84 ห้อง · จัดทำรายงานสรุปผล', 'กลุ่มงานวัดผลและประเมินผล'],
+    ['จ. 2 พ.ย. 2569 · 18.00 น.', 'ประกาศผลการแก้ไขผลการเรียน ครั้งที่ 2 ทางระบบ SGS เท่านั้น · แก้ผ่าน 211 รายการ', 'กลุ่มงานวัดผลและประเมินผล', true]
+  ];
+  function tl(list) {
+    return '<div class="tl">' + list.map(function (r) {
+      return '<div class="tl-item' + (r[3] ? ' key' : '') + '"><div class="tl-date">' + r[0] + '</div><div><div class="what">' + r[1] + '</div><div class="who">' + r[2] + '</div></div></div>';
+    }).join('') + '</div>';
+  }
+  function pageTimeline() {
+    return title('ลำดับการดำเนินงาน', 'การแก้ไขผลการเรียน (เรียนซ่อมเสริมและสอบแก้ตัว) ภาคเรียนที่ 1/2569 ตั้งแต่ออกคำสั่งจนประกาศผลครั้งที่ 2') +
+      card('<span class="round-tag r1">ครั้งที่ 1</span> กันยายน – ตุลาคม 2569 · ระบบ Prot Care', tl(TL1)) +
+      card('<span class="round-tag r2">ครั้งที่ 2</span> ตุลาคม – พฤศจิกายน 2569 · ระบบ SGS', tl(TL2));
+  }
+
+  /* ---------------- คำสั่งและประกาศ ---------------- */
+  var ORDERS = [
+    ['PDF', 'docs/cmd-239-2569.pdf', 'คำสั่งโรงเรียนพรตพิทยพยัต ที่ 239/2569', 'แต่งตั้งคณะกรรมการดำเนินกิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว ครั้งที่ 1 และครั้งที่ 2 ภาคเรียนที่ 1 ปีการศึกษา 2569 · ลงวันที่ 21 ก.ย. 2569 · 16 หน้า', 'r1'],
+    ['PDF', 'docs/announce-r1-21sep2569.pdf', 'ประกาศโรงเรียน เรื่อง การจัดกิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว ครั้งที่ 1 และครั้งที่ 2', 'กำหนดการ สถานที่ และแนวปฏิบัติ (ฉบับแก้ไข 21 ก.ย. 2569) · 4 หน้า', 'r1'],
+    ['PDF', 'docs/announce-online-29sep2569.pdf', 'ประกาศโรงเรียน เรื่อง การรับแก้ไขผลการเรียนแบบออนไลน์ ของนักเรียนที่มีผลการเรียน 0 ร และ มผ', 'ลงวันที่ 29 ก.ย. 2569 · ปรับเป็นออนไลน์เนื่องจากสถานการณ์อุทกภัย · 1 หน้า', 'r1'],
+    ['PDF', 'docs/cmd-254-2569.pdf', 'คำสั่งโรงเรียนพรตพิทยพยัต ที่ 254/2569', 'แต่งตั้งคณะกรรมการดำเนินการแก้ไขผลการเรียน (เรียนซ่อมเสริมและสอบแก้ตัว) ครั้งที่ 2 ภาคเรียนที่ 1 ปีการศึกษา 2569 · ลงวันที่ 22 ต.ค. 2569 · 11 หน้า', 'r2'],
+    ['PDF', 'docs/announce-r2-26oct2569.pdf', 'ประกาศโรงเรียน เรื่อง การแก้ไขผลการเรียน (เรียนซ่อมเสริมและสอบแก้ตัว) ครั้งที่ 2', 'ประกาศ ณ วันที่ 26 ต.ค. 2569 · ผู้มีสิทธิ์ กำหนดการ และแนวปฏิบัติสำหรับนักเรียนและผู้ปกครอง · 2 หน้า', 'r2']
+  ];
+  function docRow(d) {
+    return '<div class="doc"><span class="tp' + (d[0] === 'PDF' ? '' : ' img') + '">' + d[0] + '</span><div><div class="t">' + d[2] + '</div><div class="d">' + d[3] + '</div></div>' +
+      '<a class="btn" href="' + d[1] + '" target="_blank" rel="noopener">เปิดเอกสาร</a></div>';
+  }
+  function pageOrders() {
+    var r1 = ORDERS.filter(function (d) { return d[4] === 'r1'; }), r2 = ORDERS.filter(function (d) { return d[4] === 'r2'; });
+    return title('คำสั่งและประกาศ', 'เอกสารราชการที่เกี่ยวข้องกับการแก้ไขผลการเรียน ภาคเรียนที่ 1/2569 (ฉบับลงนาม)') +
+      sec('ครั้งที่ 1') + '<div class="doc-list">' + r1.map(docRow).join('') + '</div>' +
+      sec('ครั้งที่ 2') + '<div class="doc-list">' + r2.map(docRow).join('') + '</div>' +
+      sec('สาระสำคัญของประกาศครั้งที่ 2') +
+      card('', '<ul class="note-list">' +
+        '<li>ผู้มีสิทธิ์: นักเรียนชั้น ม.1 – ม.6 ที่ยังมีผลการเรียน 0, ร หรือ มผ ในรายวิชาของภาคเรียนที่ 1/2569 · รายวิชาภาคเรียนอื่นและผล มส ดำเนินการในรอบเรียนซ้ำ ครั้งที่ 2/2569</li>' +
+        '<li>การบันทึกผลในเอกสาร: ผลเดิม 0 บันทึกเป็น 1 · ผลเดิม ร บันทึกตามคะแนนจริงพร้อมคะแนนรวม เช่น 4 (81) · ผลเดิม มผ บันทึกเป็น ผ</li>' +
+        '<li>ครูผู้สอนไม่ต้องแก้ไขผลในระบบ Prot Care กลุ่มงานวัดผลและประเมินผลเป็นผู้แก้ไขในระบบ SGS</li>' +
+        '<li>เมื่อแก้ผ่าน ครูประจำวิชาลงนามในใบแสดงรายวิชา นักเรียนเก็บไว้เป็นหลักฐาน</li>' +
+        '<li>รายวิชาที่ครูผู้สอนย้ายไปสถานศึกษาอื่น ให้ติดต่อหัวหน้ากลุ่มสาระการเรียนรู้ของรายวิชานั้น</li>' +
+        '<li>นักเรียนที่ไม่ดำเนินการให้แล้วเสร็จภายในกำหนด โรงเรียนดำเนินการตามระเบียบว่าด้วยการวัดและประเมินผลการเรียน</li></ul>');
+  }
+
+  /* ---------------- ช่องทางประกาศผล ---------------- */
+  function pageChannels() {
+    return title('ช่องทางประกาศผลและการสื่อสาร', 'ระบบที่ใช้ประกาศผลแต่ละครั้ง และช่องทางที่ใช้แจ้งนักเรียน ครู และผู้ปกครอง') +
+      '<div class="grid g2">' +
+      '<div class="channel"><span class="round-tag r1">ครั้งที่ 1</span><h3 style="margin-top:8px">ประกาศผลทางระบบ Prot Care</h3><div class="when">ศ. 2 ต.ค. 2569 · 09.00 น.</div><dl>' +
+      '<dt>ระบบ</dt><dd>แอป PROT Student Care เมนู "ผลการเรียน"</dd>' +
+      '<dt>ผู้แก้ผลในระบบ</dt><dd>ครูประจำวิชาแก้ใน Prot Care (สถานะ "รออนุมัติ") กลุ่มงานวัดผลฯ อนุมัติ</dd>' +
+      '<dt>หากผลไม่ตรง</dt><dd>เตรียมหลักฐานการส่งงาน ติดต่อครูประจำวิชา และแก้ไขในครั้งที่ 2</dd>' +
+      '<dt>แจ้งข่าว</dt><dd>ประกาศโรงเรียน · อินโฟกราฟิกสำหรับนักเรียนและครู · กลุ่ม LINE ครู · ครูที่ปรึกษาแจ้งในกลุ่มห้องเรียน · เว็บไซต์นี้</dd></dl>' +
+      '<p style="margin:12px 0 0"><a href="info/info-result-announce-1.jpg" target="_blank" rel="noopener">ดูอินโฟกราฟิกประกาศผลครั้งที่ 1</a></p></div>' +
+      '<div class="channel"><span class="round-tag r2">ครั้งที่ 2</span><h3 style="margin-top:8px">ประกาศผลทางระบบ SGS เท่านั้น</h3><div class="when">จ. 2 พ.ย. 2569 · ตั้งแต่ 18.00 น.</div><dl>' +
+      '<dt>ระบบ</dt><dd>SGS สำหรับนักเรียนและผู้ปกครอง (sgs.bopp-obec.info/sgss) เข้าด้วยเลขประจำตัวนักเรียน และเลขประจำตัวประชาชน 13 หลัก เมนู "ผลการเรียน" · ระบบเปิด 18.00 – 06.00 น.</dd>' +
+      '<dt>ผู้แก้ผลในระบบ</dt><dd>กลุ่มงานวัดผลและประเมินผลแก้ใน SGS ตามเอกสารบันทึกผลที่ครูลงนาม</dd>' +
+      '<dt>หากผลไม่ตรง</dt><dd>นำใบแสดงรายวิชาที่ครูลงนามมาติดต่อห้องสำนักงานวิชาการ</dd>' +
+      '<dt>แจ้งข่าว</dt><dd>ประกาศโรงเรียน 26 ต.ค. · ครูที่ปรึกษาแจ้งในกลุ่ม LINE ห้องเรียน · ใบแสดงรายวิชารายบุคคล · อินโฟกราฟิกสำหรับนักเรียนและครู · เว็บไซต์นี้</dd></dl>' +
+      '<p style="margin:12px 0 0"><a href="docs/info-r2-result-sgs.jpg" target="_blank" rel="noopener">ดูอินโฟกราฟิกประกาศผลครั้งที่ 2</a></p></div>' +
+      '</div>' +
+      sec('ติดต่อสอบถาม') +
+      card('', 'กลุ่มงานวัดผลและประเมินผล กลุ่มบริหารวิชาการ โรงเรียนพรตพิทยพยัต · ห้องสำนักงานวิชาการ · โทรศัพท์ 0 2326 4050 ในวันและเวลาราชการ');
+  }
+
+  /* ---------------- คลังเอกสาร ---------------- */
+  var REPORT = [
+    ['01-cover', 'ปก'], ['02-total', 'ภาพรวม 2 ครั้ง'], ['03-compare', 'เปรียบเทียบครั้งที่ 1 และ 2'], ['04-bytype3', 'แยกตามผลเดิม'],
+    ['05-students', 'นักเรียนที่ยังมีรายการค้าง'], ['06-overview', 'ภาพรวมครั้งที่ 2'], ['07-bygrade', 'แยกตามระดับชั้น'], ['08-bysubject', 'แยกตามกลุ่มสาระ'],
+    ['09-grades', 'ผลการเรียนหลังแก้'], ['11-qc', 'การตรวจสอบความถูกต้อง'], ['12-followup', 'เรื่องที่อยู่ระหว่างติดตาม'], ['13-proposal', 'ข้อเสนอ']
+  ];
+  var INFO1 = [
+    ['info/info-student-overview.jpg', 'นักเรียน: ภาพรวมกิจกรรม'], ['info/info-student-schedule.jpg', 'นักเรียน: ตารางพบครูประจำวิชา'],
+    ['info/info-teacher-overview.jpg', 'ครู: แจ้งกิจกรรม'], ['info/info-teacher-schedule.jpg', 'ครู: ตารางปฏิบัติหน้าที่'],
+    ['info/info-student-care.jpg', 'วิธีดูผลในแอป PROT Student Care'], ['info/info-flood-calendar.jpg', 'ปฏิทินใหม่ (อุทกภัย)'],
+    ['info/info-flood-student.jpg', 'นักเรียน: แก้ผลแบบออนไลน์'], ['info/info-flood-teacher.jpg', 'ครู: แก้ผลแบบออนไลน์'],
+    ['info/info-result-announce-1.jpg', 'ประกาศผลครั้งที่ 1 (2 ต.ค. 2569)']
+  ];
+  var INFO2 = [
+    ['docs/info-r2-prepare-26oct.jpg', 'นักเรียน: เตรียมตัวแก้ครั้งที่ 2 (26 ต.ค.)'], ['docs/info-r2-student.jpg', 'นักเรียน: ขั้นตอนครั้งที่ 2 (28 – 30 ต.ค.)'],
+    ['docs/info-r2-teacher.jpg', 'ครูประจำวิชา: ขั้นตอนครั้งที่ 2'], ['docs/info-r2-submit-30oct.jpg', 'ครู: ย้ำส่งเอกสาร (30 ต.ค.)'],
+    ['docs/info-r2-result-sgs.jpg', 'ประกาศผลครั้งที่ 2 ทาง SGS (2 พ.ย.)']
+  ];
+  var RECORDS = [[1, 23, '12 MB'], [2, 28, '16 MB'], [3, 31, '19 MB'], [4, 24, '16 MB'], [5, 14, '9 MB'], [6, 24, '17 MB'], [7, 8, '5 MB']].map(function (r) {
+    return ['PDF', 'docs/records/record-r2-set' + r[0] + '.pdf', 'แบบบันทึกการซ่อมเสริมและสอบแก้ตัว ครั้งที่ 2 ชุดที่ ' + r[0], r[1] + ' หน้า · ไฮไลท์รายการที่แก้ผ่านและบันทึกใน SGS แล้ว · ' + r[2]];
+  });
+  function gallery(list, wide) {
+    return '<div class="gallery' + (wide ? ' wide' : '') + '">' + list.map(function (g) {
+      return '<a href="' + g[0] + '" target="_blank" rel="noopener"><img loading="lazy" src="' + g[0] + '" alt="' + esc(g[1]) + '"><div class="cap">' + esc(g[1]) + '</div></a>';
+    }).join('') + '</div>';
+  }
+  function pageLibrary() {
+    return title('คลังเอกสาร', 'รายงานผลการดำเนินงาน อินโฟกราฟิก คำสั่ง และประกาศทั้งหมดของการแก้ไขผลการเรียน ภาคเรียนที่ 1/2569 · กดที่ภาพเพื่อเปิดขนาดเต็ม') +
+      sec('สรุปผลการดำเนินงาน (ภาพรวม 2 ครั้ง)') +
+      gallery([['docs/report-summary-p1.jpg', 'สรุปภาพรวมการแก้ไขผลการเรียน 2 ครั้ง']]) +
+      sec('รายงานผลการดำเนินงาน') +
+      gallery(REPORT.map(function (r) { return ['docs/report-' + r[0] + '.jpg', r[0].slice(0, 2) + ' · ' + r[1]]; }), true) +
+      sec('คำสั่งและประกาศ') + '<div class="doc-list">' + ORDERS.map(docRow).join('') + '</div>' +
+      sec('อินโฟกราฟิก ครั้งที่ 1') + gallery(INFO1) +
+      sec('อินโฟกราฟิก ครั้งที่ 2') + gallery(INFO2) +
+      sec('แบบบันทึกการซ่อมเสริมและสอบแก้ตัว ครั้งที่ 2 (ฉบับสแกน)') +
+      '<p class="small muted" style="margin:-4px 0 12px">แบบบันทึกที่ครูประจำวิชาลงนามและส่งคืนเมื่อ 30 ต.ค. 2569 · แถบไฮไลท์ = รายการที่แก้ผ่านและบันทึกในระบบ SGS แล้ว</p>' +
+      '<div class="doc-list">' + RECORDS.map(docRow).join('') + '</div>';
+  }
+
+  /* ---------------- router ---------------- */
+  var PAGES = { summary: pageSummary, lookup: pageLookup, timeline: pageTimeline, orders: pageOrders, channels: pageChannels, library: pageLibrary };
+  function route() {
+    var h = (location.hash || '#/summary').replace(/^#\/?/, '').split('/');
+    var key = PAGES[h[0]] ? h[0] : 'summary';
+    app.innerHTML = PAGES[key](decodeURIComponent(h[1] || ''));
+    Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (a) {
+      a.classList.toggle('active', a.getAttribute('data-nav') === key);
+    });
+    if (key === 'lookup') {
+      var f = document.getElementById('lk'), inp = document.getElementById('lkId');
+      f.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var v = inp.value.replace(/\D/g, '');
+        location.hash = '#/lookup/' + v;
+      });
+      if (!h[1]) inp.focus();
+    }
+    window.scrollTo(0, 0);
+  }
+  document.getElementById('dbMain').textContent = 'ข้อมูลครั้งที่ 1: ' + D.meta.r1asOf + ' · ครั้งที่ 2: ' + D.meta.asOf;
+  document.getElementById('footMeta').textContent = 'สรุปปิดงานการแก้ไขผลการเรียน ภาคเรียนที่ 1/2569 · จัดทำ ' + D.meta.built;
+  window.addEventListener('hashchange', route);
+  route();
+})();
