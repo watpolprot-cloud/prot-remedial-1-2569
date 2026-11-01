@@ -274,6 +274,15 @@
       }).join('') + '</div></div>' +
       '<a class="btn" href="' + r.file + '" target="_blank" rel="noopener">เปิดทั้งไฟล์</a></div>';
   }
+  // รายการที่ครูแจ้งผลทาง LINE ไม่ได้อยู่ในแบบบันทึก (ที่มา: รายงาน SGS 30 ต.ค. และ 1 พ.ย. 2569) · ไม่ระบุตัวนักเรียน
+  var LINE_ITEMS = [
+    ['ครูสุดสาคร เหิรเมฆ', 'ก20943', 'ม.2', 'มผ → ผ', '30 ต.ค. 2569 16.23 น.', 'docs/line/line-1-sudsakorn.jpg'],
+    ['ครูสิรินาถ ธงศิลา (แจ้งผ่านหัวหน้ากลุ่มสนับสนุนการสอน)', 'ก30905', 'ม.6', 'มผ → ผ', '30 ต.ค. 2569 16.33 น.', 'docs/line/line-2-support-head.jpg'],
+    ['ครูเอกรินทร์ นิรันดร์', 'ค31201', 'ม.4', 'ร → 1.5', '30 ต.ค. 2569 18.06 น.', 'docs/line/line-3-ekarin.jpg'],
+    ['ครูณัฐนนท์ ลิ้มทองคำ', 'อ30225', 'ม.6', 'ร → 2', '30 ต.ค. 2569 21.09 น.', 'docs/line/line-4-nattanon.jpg'],
+    ['ครูนุสบา ศรีเพ็ชร', 'ว21101', 'ม.1', '0 → 1', '30 ต.ค. 2569 19.16 น.', 'docs/line/line-5-nussaba.jpg'],
+    ['ครูวันทนีย์ เสียงประเสริฐ', 'ว23101', 'ม.3', 'ร → 2', '30 ต.ค. 2569 19.36 น.', 'docs/line/line-6-wantanee.jpg']
+  ];
   function gallery(list, wide) {
     return '<div class="gallery' + (wide ? ' wide' : '') + '">' + list.map(function (g) {
       return '<a href="' + g[0] + '" target="_blank" rel="noopener"><img loading="lazy" src="' + g[0] + '" alt="' + esc(g[1]) + '"><div class="cap">' + esc(g[1]) + '</div></a>';
@@ -290,7 +299,13 @@
       sec('อินโฟกราฟิก ครั้งที่ 2') + gallery(INFO2) +
       sec('แบบบันทึกการซ่อมเสริมและสอบแก้ตัว ครั้งที่ 2 (ฉบับสแกน)') +
       '<p class="small muted" style="margin:-4px 0 12px">แบบบันทึกที่ครูประจำวิชาลงนามและส่งคืนเมื่อ 30 ต.ค. 2569 จัดแยกตามกลุ่มสาระของครูผู้สอน เรียงตามชื่อครู · กดชื่อครูเพื่อเปิดไปที่หน้านั้น · แถบไฮไลท์ = รายการที่แก้ผ่านและบันทึกในระบบ SGS แล้ว</p>' +
-      '<div class="doc-list">' + RECORDS.map(recordCard).join('') + '</div>';
+      '<div class="doc-list">' + RECORDS.map(recordCard).join('') + '</div>' +
+      sec('ผลที่ครูแจ้งทาง LINE (ไม่มีในแบบบันทึก)') +
+      '<p class="small muted" style="margin:-4px 0 12px">ครูประจำวิชาแจ้งผลการแก้ไขทาง LINE ถึงครูนพพล ภาณุสุวัฒน์ แทนหรือเพิ่มเติมจากแบบบันทึกกระดาษ กลุ่มงานวัดผลฯ แก้ไขในระบบ SGS และตรวจซ้ำแล้วก่อนประกาศผล</p>' +
+      card('', '<div class="table-scroll"><table><thead><tr><th>ครูผู้สอน</th><th>รหัสวิชา</th><th>ชั้น</th><th>ผลเดิม → ผลใหม่</th><th>วันเวลาที่แจ้ง</th><th>หลักฐาน</th></tr></thead><tbody>' +
+        LINE_ITEMS.map(function (r) { return '<tr><td>' + r.slice(0, 5).join('</td><td>') + '</td><td><a href="' + r[5] + '" target="_blank" rel="noopener">ภาพแชต LINE</a></td></tr>'; }).join('') + '</tbody></table></div>' +
+        '<p class="small muted" style="margin:10px 0 0">ภาพแชตปิดชื่อและเลขประจำตัวนักเรียนแล้ว</p>') +
+      gallery(LINE_ITEMS.map(function (r) { return [r[5], r[0] + ' · ' + r[1]]; }), true);
   }
 
   /* ---------------- router ---------------- */
