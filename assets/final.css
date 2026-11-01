@@ -57,6 +57,10 @@ tr.total td{font-weight:700; background:var(--soft)}
 .doc .tp.img{background:var(--gold); color:#2b2100}
 .doc .t{font-weight:600; line-height:1.4}
 .doc .d{font-size:.84rem; color:var(--muted)}
+.doc.rec{align-items:start}
+.rec-t{display:flex; flex-wrap:wrap; gap:6px 8px; margin-top:8px}
+.rec-t a{font-size:.84rem; padding:3px 9px; border:1px solid var(--line); border-radius:99px; background:var(--soft); color:var(--text)}
+.rec-t a:hover{border-color:var(--navy-2); text-decoration:none}
 @media(max-width:560px){.doc{grid-template-columns:1fr} .doc .tp{justify-self:start}}
 
 .gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px}
