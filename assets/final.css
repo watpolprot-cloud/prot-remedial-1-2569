@@ -91,3 +91,15 @@ tr.total td{font-weight:700; background:var(--soft)}
   .section-title{break-after:avoid}
   .card,.stat,.channel{break-inside:avoid}
 }
+
+/* บันทึกการดำเนินการในระบบ SGS */
+.st-ok3{background:var(--ok-bg); color:var(--ok)}
+.kind{display:inline-block; font-size:.74rem; font-weight:700; padding:1px 8px; border-radius:6px; vertical-align:2px; white-space:nowrap}
+.k-edit{background:#fbf3d6; color:#6e5300}
+.k-check{background:#e7edf7; color:var(--r1)}
+.k-move{background:#efe8f6; color:var(--purple)}
+.k-sync{background:var(--ok-bg); color:var(--ok)}
+.k-key{background:#8a1515; color:#fff}
+.log-n{font-size:.84rem; font-weight:600; color:var(--navy); white-space:nowrap}
+.log-d{margin:4px 0 0; font-size:.92rem}
+.log-legend{margin:0 0 6px}

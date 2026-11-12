@@ -2,6 +2,9 @@
 (function () {
   'use strict';
   var D = window.PROTF;
+  var LOG = window.PROTLOG || { post: [], phases: [], pending: [] };
+  var POST = {};
+  LOG.post.forEach(function (r) { POST[r[0] + '|' + r[1]] = r; });
   var S = D.stats;
   var app = document.getElementById('app');
 
@@ -107,6 +110,7 @@
     h += card('', '<ul class="note-list">' +
       '<li>ครั้งที่ 1: ' + esc(D.meta.r1asOf) + ' · ครั้งที่ 2: ' + esc(D.meta.asOf) + '</li>' +
       '<li>ยอดแก้ผ่านครั้งที่ 2 จำนวน 218 รายการ รวม 7 รายการที่ครูเอกรินทร์ส่งแบบบันทึกภายหลังและแก้ในระบบ SGS เมื่อ 2 พ.ย. 2569 และรวม 4 รายการที่แก้ในระบบ SGS แล้วและอยู่ระหว่างตรวจยืนยันกับเอกสาร</li>' +
+      (LOG.post.length ? '<li>หลังประกาศผลครั้งที่ 2 แก้ไขเพิ่มเติมในระบบ SGS อีก ' + LOG.post.length + ' รายการ (' + esc(LOG.updated) + ') ยังไม่รวมในตัวเลขของหน้านี้ ดูเมนู <a href="#/sgslog">บันทึกการดำเนินการ SGS</a></li>' : '') +
       '<li>รายการของครู 2 ท่าน (12 รายการ) ที่ยังไม่ได้ส่งผลในวันจัดทำสถิติ นับเป็นคงผลเดิม</li>' +
       '<li>ผลการเรียน มส ไม่อยู่ในขอบข่ายการแก้ไขผลการเรียนนี้ ให้ดำเนินการในรอบเรียนซ้ำ ครั้งที่ 2/2569</li>' +
       '<li>รายการที่ยังไม่ผ่านหลังแก้ 2 ครั้ง โรงเรียนดำเนินการตามระเบียบโรงเรียนพรตพิทยพยัตว่าด้วยการวัดและประเมินผลการเรียน</li>' +
@@ -141,23 +145,24 @@
     if (!/^\d{5}$/.test(id)) return '<div class="notice warn">กรุณากรอกเลขประจำตัวนักเรียนให้ครบ 5 หลัก</div>';
     var s = D.students[id];
     if (!s) return '<div class="notice info">ไม่พบรายการ 0 / ร / มผ ของเลขประจำตัว ' + esc(id) + ' ในการแก้ไขผลการเรียน ภาคเรียนที่ 1/2569 · ผล มส ไม่อยู่ในขอบข่าย ตรวจสอบได้ในระบบ SGS</div>';
-    var items = s[1], p1 = 0, p2 = 0;
+    var items = s[1], p1 = 0, p2 = 0, p3 = 0;
     var rows = items.map(function (it) {
       // [รหัสวิชา, ชื่อวิชา, ผลเดิม, ผลครั้งที่ 1, ผลครั้งที่ 2, ครูผู้สอน, กลุ่มสาระ]
       var st;
       if (it[3]) { p1++; st = '<span class="st st-ok1">ผ่านในครั้งที่ 1</span>'; }
       else if (it[4]) { p2++; st = '<span class="st st-ok2">ผ่านในครั้งที่ 2</span>'; }
+      else if (POST[id + '|' + it[0]]) { p3++; st = '<span class="st st-ok3">แก้ไขเพิ่มเติม ' + esc(POST[id + '|' + it[0]][4]) + '</span>'; }
       else st = '<span class="st st-left">ยังไม่ผ่าน</span>';
-      var g = it[3] || it[4];
+      var g = it[3] || it[4] || (POST[id + '|' + it[0]] ? POST[id + '|' + it[0]][3] : '');
       return '<tr><td class="subj" data-l="รายวิชา">' + esc(it[0]) + ' ' + esc(it[1]) + '<div class="small muted">' + esc(it[5]) + '</div></td>' +
         '<td class="num" data-l="ผลเดิม">' + esc(it[2]) + '</td>' +
         '<td class="num" data-l="ผลหลังแก้">' + (g && g !== 'ผ่าน' ? '<span class="gnew">' + esc(g) + '</span>' : (g ? 'ผ่าน' : '–')) + '</td>' +
         '<td data-l="สถานะ">' + st + '</td></tr>';
     }).join('');
-    var left = items.length - p1 - p2;
+    var left = items.length - p1 - p2 - p3;
     return '<div class="card"><div class="card-head res-head"><div><div class="small muted">เลขประจำตัวนักเรียน</div><div class="id">' + esc(id) + '</div></div>' +
-      '<div class="small">ห้อง (ภาคเรียนที่ 1/2569) ' + esc(s[0]) + ' · ' + items.length + ' รายวิชา · ผ่านครั้งที่ 1 ' + p1 + ' · ผ่านครั้งที่ 2 ' + p2 + ' · ยังไม่ผ่าน ' + left + '</div></div>' +
-      '<div class="card-body"><div class="table-scroll"><table class="resp"><thead><tr><th>รายวิชา / ครูผู้สอน</th><th class="num">ผลเดิม</th><th class="num">ผลหลังแก้</th><th>สถานะ</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="small">ห้อง (ภาคเรียนที่ 1/2569) ' + esc(s[0]) + ' · ' + items.length + ' รายวิชา · ผ่านครั้งที่ 1 ' + p1 + ' · ผ่านครั้งที่ 2 ' + p2 + (p3 ? ' · แก้ไขเพิ่มเติมหลังประกาศผล ' + p3 : '') + ' · ยังไม่ผ่าน ' + left + '</div></div>' +
+      '<div class="card-body">' + (p3 ? '<div class="notice info" style="margin-bottom:12px">มีรายการที่แก้ไขในระบบ SGS หลังประกาศผลครั้งที่ 2 ดูรายละเอียดที่เมนู <a href="#/sgslog">บันทึกการดำเนินการ SGS</a></div>' : '') + '<div class="table-scroll"><table class="resp"><thead><tr><th>รายวิชา / ครูผู้สอน</th><th class="num">ผลเดิม</th><th class="num">ผลหลังแก้</th><th>สถานะ</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
       (left ? '<div class="notice" style="margin-top:12px">รายวิชาที่ยังไม่ผ่านหลังแก้ไข 2 ครั้ง โรงเรียนดำเนินการตามระเบียบโรงเรียนพรตพิทยพยัตว่าด้วยการวัดและประเมินผลการเรียน ติดตามประกาศจากกลุ่มงานวัดผลและประเมินผล</div>' :
         '<div class="notice info" style="margin-top:12px">แก้ไขผลการเรียน 0 / ร / มผ ผ่านครบทุกรายวิชาแล้ว</div>') +
       '</div></div>';
@@ -167,7 +172,7 @@
   var TL1 = [
     ['21 ก.ย. 2569', 'ออกคำสั่งโรงเรียนพรตพิทยพยัต ที่ 239/2569 และประกาศโรงเรียน เรื่อง การจัดกิจกรรมเรียนซ่อมเสริมและสอบแก้ตัว ครั้งที่ 1 และครั้งที่ 2', 'โรงเรียน'],
     ['พ. 23 ก.ย. 2569', 'ประกาศผลการเรียน ภาคเรียนที่ 1/2569 ทางระบบ Prot Care', 'กลุ่มงานวัดผลและประเมินผล'],
-    ['พฤ. 24 ก.ย. 2569', 'แก้ไขผลการเรียน ครั้งที่ 1 รอบเช้าและรอบบ่าย ณ หอประชุมคุณแม่จ่อย ดร.อนันต์ เล็กใจซื่อ', 'นักเรียน / ครูประจำวิชา'],
+    ['พฤ. 24 ก.ย. 2569', 'แก้ไขผลการเรียน ครั้งที่ 1 รอบเช้าและรอบบ่าย ณ หอประชุมคุณแม่จ้อย ดร.อนันต์ เล็กใจซื่อ', 'นักเรียน / ครูประจำวิชา'],
     ['จ. 28 – พ. 30 ก.ย. 2569', 'ปรับเป็นการแก้ไขผลการเรียนแบบออนไลน์ทุกกลุ่มสาระ เนื่องจากสถานการณ์อุทกภัยในพื้นที่เขตลาดกระบัง', 'นักเรียน / ครูประจำวิชา'],
     ['อ. 29 ก.ย. 2569', 'ประกาศโรงเรียน เรื่อง การรับแก้ไขผลการเรียนแบบออนไลน์ ให้ครูรับงานจากนักเรียนทุกช่องทาง (LINE, Google Classroom, อีเมล, โทรศัพท์)', 'โรงเรียน'],
     ['พ. 30 ก.ย. 2569 · 16.00 น.', 'ปิดรับงานจากนักเรียน', 'ครูประจำวิชา'],
@@ -185,7 +190,8 @@
     ['30 ต.ค. – 1 พ.ย. 2569', 'กลุ่มงานวัดผลฯ แก้ไขผลการเรียนในระบบ SGS ตามเอกสารบันทึกผล และยืนยันผลกับครูประจำวิชาทาง LINE รายบุคคล', 'กลุ่มงานวัดผลและประเมินผล'],
     ['ส. 31 ต.ค. 2569', 'ปรับผลการเรียนในระบบ Prot CARE ให้ตรงกับระบบ SGS', 'กลุ่มงานวัดผลและประเมินผล'],
     ['อา. 1 พ.ย. 2569', 'ตรวจทวนครั้งสุดท้าย: รายการที่แก้ตรง 207/207 · ต.2ก SGS ตรง Prot CARE ครบ 84 ห้อง · จัดทำรายงานสรุปผล', 'กลุ่มงานวัดผลและประเมินผล'],
-    ['จ. 2 พ.ย. 2569 · 18.00 น.', 'ประกาศผลการแก้ไขผลการเรียน ครั้งที่ 2 ทางระบบ SGS เท่านั้น · แก้ผ่าน 218 รายการ (รวม 7 รายการที่แก้เพิ่ม 2 พ.ย. ตามแบบบันทึกที่ครูส่งภายหลัง)', 'กลุ่มงานวัดผลและประเมินผล', true]
+    ['จ. 2 พ.ย. 2569 · 18.00 น.', 'ประกาศผลการแก้ไขผลการเรียน ครั้งที่ 2 ทางระบบ SGS เท่านั้น · แก้ผ่าน 218 รายการ (รวม 7 รายการที่แก้เพิ่ม 2 พ.ย. ตามแบบบันทึกที่ครูส่งภายหลัง)', 'กลุ่มงานวัดผลและประเมินผล', true],
+    ['อ. 3 พ.ย. 2569', 'แก้ไขเพิ่มเติมหลังประกาศผลในระบบ SGS 6 รายการ (กรณีพิเศษนักเรียนย้ายสถานศึกษา 5 รายการ และผลครั้งที่ 1 ที่ตกหล่น 1 รายการ) · ดูเมนู <a href="#/sgslog">บันทึกการดำเนินการ SGS</a>', 'กลุ่มงานวัดผลและประเมินผล']
   ];
   function tl(list) {
     return '<div class="tl">' + list.map(function (r) {
@@ -309,8 +315,42 @@
       gallery(LINE_ITEMS.map(function (r) { return [r[5], r[0] + ' · ' + r[1]]; }), true);
   }
 
+
+  /* ---------------- บันทึกการดำเนินการในระบบ SGS (ข้อมูลจาก data/sgslog.js) ---------------- */
+  var KIND = { edit: ['แก้ข้อมูลใน SGS', 'k-edit'], check: ['ตรวจอย่างเดียว', 'k-check'], move: ['นำข้อมูลเข้า SGS', 'k-move'], sync: ['ปรับ Prot CARE ให้ตรง', 'k-sync'], key: ['ประกาศผล', 'k-key'] };
+  function pageSgsLog() {
+    var nEdit = 0;
+    LOG.phases.forEach(function (ph) { ph.entries.forEach(function (e) { if (e[1] === 'edit') nEdit++; }); });
+    var h = title('บันทึกการดำเนินการในระบบ SGS',
+      'การนำเข้า ตรวจสอบ และแก้ไขผลการเรียนภาคเรียนที่ 1/2569 ในระบบ SGS ที่กลุ่มงานวัดผลและประเมินผลดำเนินการ เรียงตามวันที่ · ปรับปรุงล่าสุด ' + esc(LOG.updated));
+    h += '<div class="notice" style="margin-bottom:16px">แสดงเป็นจำนวนรายการและภาพรวมเท่านั้น ไม่แสดงข้อมูลของนักเรียนรายบุคคล · นักเรียนตรวจผลของตนเองได้ที่เมนู <a href="#/lookup">ตรวจผลรายบุคคล</a> หรือในระบบ SGS</div>';
+    h += '<div class="legend log-legend">' + ['edit', 'check', 'move', 'sync'].map(function (k) { return '<span><b class="kind ' + KIND[k][1] + '">' + KIND[k][0] + '</b></span>'; }).join('') + '</div>';
+    LOG.phases.forEach(function (ph) {
+      h += sec(esc(ph.title));
+      if (ph.lead) h += '<p class="small muted" style="margin:-4px 0 12px">' + esc(ph.lead) + '</p>';
+      h += '<div class="card"><div class="card-body"><div class="tl log">' + ph.entries.map(function (e) {
+        var k = KIND[e[1]] || KIND.check;
+        return '<div class="tl-item' + (e[1] === 'key' ? ' key' : '') + '"><div class="tl-date">' + esc(e[0]) + '</div><div>' +
+          '<div class="what"><span class="kind ' + k[1] + '">' + k[0] + '</span> ' + esc(e[2]) + (e[4] ? ' <span class="log-n">' + esc(e[4]) + ' รายการ</span>' : '') + '</div>' +
+          '<ul class="note-list log-d">' + e[3].map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul></div></div>';
+      }).join('') + '</div></div></div>';
+    });
+    if (LOG.pending.length) {
+      h += sec('เรื่องที่อยู่ระหว่างดำเนินการ');
+      h += card('', '<ul class="note-list">' + LOG.pending.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul>');
+    }
+    h += sec('หลักการแก้ไขข้อมูลในระบบ SGS');
+    h += card('', '<ul class="note-list">' +
+      '<li>แก้ไขตามเอกสารที่ครูประจำวิชาลงนาม หรือผลที่ครูแจ้งเป็นลายลักษณ์อักษรทาง LINE เท่านั้น</li>' +
+      '<li>หลังบันทึกทุกครั้ง อ่านค่ากลับจากระบบเพื่อยืนยันว่าบันทึกจริง และตรวจว่าไม่มีรายการค้าง</li>' +
+      '<li>ข้อมูลในระบบ SGS กับ Prot CARE ต้องตรงกัน หากแก้ระบบใดระบบหนึ่ง จะปรับอีกระบบให้ตรงตามมา</li>' +
+      '<li>ผลการเรียนที่เป็นทางการให้ยึดระบบ SGS หากผลไม่ตรงกับใบที่ครูลงนาม ให้นำใบนั้นมาติดต่อห้องสำนักงานวิชาการ</li>' +
+      '</ul>');
+    return h;
+  }
+
   /* ---------------- router ---------------- */
-  var PAGES = { summary: pageSummary, lookup: pageLookup, timeline: pageTimeline, orders: pageOrders, channels: pageChannels, library: pageLibrary };
+  var PAGES = { summary: pageSummary, lookup: pageLookup, timeline: pageTimeline, orders: pageOrders, channels: pageChannels, sgslog: pageSgsLog, library: pageLibrary };
   function route() {
     var h = (location.hash || '#/summary').replace(/^#\/?/, '').split('/');
     var key = PAGES[h[0]] ? h[0] : 'summary';
@@ -329,7 +369,7 @@
     }
     window.scrollTo(0, 0);
   }
-  document.getElementById('dbMain').textContent = 'ข้อมูลครั้งที่ 1: ' + D.meta.r1asOf + ' · ครั้งที่ 2: ' + D.meta.asOf;
+  document.getElementById('dbMain').textContent = 'ข้อมูลครั้งที่ 1: ' + D.meta.r1asOf + ' · ครั้งที่ 2: ' + D.meta.asOf + (LOG.post.length ? ' · แก้ไขเพิ่มเติมใน SGS ล่าสุด ' + LOG.updated : '');
   document.getElementById('footMeta').textContent = 'สรุปปิดงานการแก้ไขผลการเรียน ภาคเรียนที่ 1/2569 · จัดทำ ' + D.meta.built;
   window.addEventListener('hashchange', route);
   route();
